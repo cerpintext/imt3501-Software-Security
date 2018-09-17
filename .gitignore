@@ -1,0 +1,21 @@
+# Binaries for programs and plugins(windows)
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# The binary files compiled by golang.
+bin/
+
+# Test binary, build with `go test -c`
+#    go test -c help entry:
+#	    Compile the test binary to pkg.test but do not run it
+#	    (where pkg is the last element of the package's import path).
+#	    The file name can be changed with the -o flag.
+*.test
+
+# Visual code
+.vs
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
