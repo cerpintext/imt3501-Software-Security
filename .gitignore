@@ -8,6 +8,9 @@
 # The binary files compiled by golang.
 bin/
 
+# The dependencies for the project, downlaoded with go get. All dependencies in README.md 
+pkg/
+
 # Test binary, build with `go test -c`
 #    go test -c help entry:
 #	    Compile the test binary to pkg.test but do not run it
