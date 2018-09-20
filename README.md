@@ -1,10 +1,12 @@
 # IMT3501 Software Security Project - Forum application
 
 ## Members
-Jone Skaara (Student no: 473181)  
-Kristian S. Holm (Student no: 473114)  
-Olav H. Hoggen (Student no: 473138)  
-Martin Kvalvåg (Student no: 473144)  
+| Name             | Studentno |
+| ---------------- | --------- |
+| Jone Skaara      | 473181    | 
+| Kristian S. Holm | 473114    |
+| Olav H. Hoggen   | 473138    |
+| Martin Kvalvåg   | 473144    |
 
 ## Description
 This is the assignment in IMT3501 Software Security at NTNU in Gjøvik Norway. The task is to create a web forum with a concept of users, threads, categories, messages, and message replies.
@@ -16,9 +18,12 @@ There is a string focus on security in the application.
 ## Installation
 ```bash
 	git clone git@github.com:krisshol/imt3501-Software-Security.git
-
-	.
-	.
+    cd imt3501-Software-Security/bin
+    go build ../cmd/forumServer
+    .
+    .# Conifg of ip and port comes here.
+    .
+    ./forumServer   # Must be ran from bin since the path is relative to terminals working dir, not the executable's location.
 
 ```
 
