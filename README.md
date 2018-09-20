@@ -5,6 +5,7 @@ Jone Skaara (Student no: 473181)
 Kristian S. Holm (Student no: 473114)  
 Olav H. Hoggen (Student no: 473138)  
 Martin Kvalvåg (Student no: 473144) 
+
 Magnus Bringe (Student no: 473155)
 
 ## Description
