@@ -15,7 +15,12 @@ There is a string focus on security in the application.
 ## Installation
 ```bash
 	git clone git@github.com:krisshol/imt3501-Software-Security.git
-	.
+
+local db:
+    #basic setup first.
+    mysql -u root -p
+    create database forum	
+    mysql -u root -p forum < create-db.sql 
 	.
 	.
 
