@@ -2,7 +2,7 @@
 
 ## Members
 Jone Skaara (Student no: 473181)
-
+Olav H. Hoggen (Student no: 473138)
 
 ## Description
 This is the assignment in IMT3501 Software Security at NTNU in Gjøvik Norway. The task is to create a web forum with a concept of users, treads, categories, messages, and message replies.
