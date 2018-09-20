@@ -4,33 +4,59 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
+	"strings"
+
+	"github.com/subosito/gotenv"
 )
 
-const address = "127.0.0.1" // Localhost.
-const port = "5000"         // Must be an open port. On linux open with $source PORT=5000
-const htmlPath = "../html/"
+var address string // Localhost.
+var port string    // Must be an open port. On linux open with $source PORT=5000
+var htmlPath string
+
+// Init loads parameters form .env file.
+func Init() {
+
+	gotenv.Load()
+	address = os.Getenv("ADDRESS")
+	port = os.Getenv("PORT")
+	htmlPath = os.Getenv("HTMLPATH")
+}
 
 func defaultHandler(w http.ResponseWriter, r *http.Request) { // Default request handler handles domain/ requests.
+	w.Header().Set("Content-Type", "text/html") // The response will be an html document.
+	fmt.Print("Received a request to /.\n")
+	switch r.Method { // Do different things depending on type of request.
 
-	fmt.Print("Received a request to /.")
-	switch r.Method {
 	case "GET":
-		data, err := ioutil.ReadFile(htmlPath + "index.html")
-		if err != nil {
-			fmt.Print("Something went wrong: " + string(data))
-			panic(err)
+
+		fileNames := strings.Split(r.URL.Path, "/")
+		fileName := fileNames[len(fileNames)-2] + ".html" // Create desired filename path.
+		if fileName == ".html" {
+			fileName = "index.html"
 		}
-		fmt.Fprint(w, string(data))
+		fmt.Printf("Http request for html file: %s\n", fileName)
+		data, err := ioutil.ReadFile(htmlPath + fileName) // Attempt to read desired file.
+		if err != nil {
+			fmt.Printf("Something went wrong fetching file: %s:\n %s\n\n", fileName, string(data))
+		} else {
+
+			fmt.Printf("Serving\n\n")
+			fmt.Fprint(w, string(data)) // If read went ok, send file.
+		}
 		break
+
 	case "POST":
-		fmt.Fprintf(w, "Hello world! You did a post request.") // Write hello world to respone writer.
+
+		fmt.Fprint(w, "Hello world! You did a post request.\n") // Write hello world to response writer.
 		break
 	}
 }
 
 func main() {
 
-	fmt.Print("Starting server listening on " + address + " with port " + port)
+	Init()
+	fmt.Print("Starting server listening on " + address + " with port " + os.Getenv("PORT") + "\n")
 	http.HandleFunc("/", defaultHandler)
-	http.ListenAndServe(address+":"+port, nil) // Start serving incomming requests. Will continue to serve forever.
+	http.ListenAndServe(address+":"+os.Getenv("PORT"), nil) // Start serving incomming requests. Will continue to serve forever.
 }
