@@ -31,14 +31,17 @@ There is a string focus on security in the application.
 
 
 ## Installation
+### Linux
 ```bash
 	git clone git@github.com:krisshol/imt3501-Software-Security.git
     cd imt3501-Software-Security/bin
     go get github.com/subosito/gotenv
     go get github.com/go-sql-driver/mysql
     go build ../cmd/forumServer
+    cp ../docs/envExample .env
+    # Fill inn missing fields in .env file. Like PORT and IP.
     .
-    .# Conifg of ip and port comes here.
+    .        
     .
     ./forumServer   # Must be ran from bin since the path is relative to terminals working dir, not the executable's location.
 
