@@ -15,10 +15,27 @@ There is a string focus on security in the application.
 
 ## Components 
 
+### Golang Server
+
+### HTML Websites
+
+### Database Handler
+
+### MYSQL Database
+
+## Dependencies
+    - github.com/subosito/gotenv
+        Gotenv is a very small library for reading .env files for golang programs.
+    - github.com/go-sql-driver/mysql
+        My SQL driver for golang.
+
+
 ## Installation
 ```bash
 	git clone git@github.com:krisshol/imt3501-Software-Security.git
     cd imt3501-Software-Security/bin
+    go get github.com/subosito/gotenv
+    go get github.com/go-sql-driver/mysql
     go build ../cmd/forumServer
     .
     .# Conifg of ip and port comes here.
