@@ -4,12 +4,24 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"strings"
+
+	"github.com/subosito/gotenv"
 )
 
-const address = "127.0.0.1" // Localhost.
-const port = "5000"         // Must be an open port. On linux open with $source PORT=5000
-const htmlPath = "../html/"
+var address string // Localhost.
+var port string    // Must be an open port. On linux open with $source PORT=5000
+var htmlPath string
+
+// Init loads parameters form .env file.
+func Init() {
+
+	gotenv.Load()
+	address = os.Getenv("ADDRESS")
+	port = os.Getenv("PORT")
+	htmlPath = os.Getenv("HTMLPATH")
+}
 
 func defaultHandler(w http.ResponseWriter, r *http.Request) { // Default request handler handles domain/ requests.
 	w.Header().Set("Content-Type", "text/html") // The response will be an html document.
@@ -30,7 +42,7 @@ func defaultHandler(w http.ResponseWriter, r *http.Request) { // Default request
 		} else {
 
 			fmt.Printf("Serving\n\n")
-			fmt.Fprint(w, string(data)) // If read went ok, wend file.
+			fmt.Fprint(w, string(data)) // If read went ok, send file.
 		}
 		break
 
@@ -43,7 +55,8 @@ func defaultHandler(w http.ResponseWriter, r *http.Request) { // Default request
 
 func main() {
 
-	fmt.Print("Starting server listening on " + address + " with port " + port + "\n")
+	Init()
+	fmt.Print("Starting server listening on " + address + " with port " + os.Getenv("PORT") + "\n")
 	http.HandleFunc("/", defaultHandler)
-	http.ListenAndServe(address+":"+port, nil) // Start serving incomming requests. Will continue to serve forever.
+	http.ListenAndServe(address+":"+os.Getenv("PORT"), nil) // Start serving incomming requests. Will continue to serve forever.
 }
