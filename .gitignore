@@ -10,6 +10,7 @@ bin/
 
 # The dependencies for the project, downlaoded with go get. All dependencies in README.md 
 pkg/
+src/
 
 # Test binary, build with `go test -c`
 #    go test -c help entry:
