@@ -31,7 +31,7 @@ func defaultHandler(w http.ResponseWriter, r *http.Request) { // Default request
 	case "GET":
 
 		fileNames := strings.Split(r.URL.Path, "/")
-		fileName := fileNames[len(fileNames)-2] + ".html" // Create desired filename path.
+		fileName := strings.ToLower(fileNames[len(fileNames)-2]) + ".html" // Create desired filename path.
 		if fileName == ".html" {
 			fileName = "index.html"
 		}
