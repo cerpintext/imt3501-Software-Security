@@ -2,37 +2,11 @@ package app
 
 import (
 	"fmt"
-	"io/ioutil"
 	"net/http"
 
 	"github.com/krisshol/imt3501-Software-Security/cmd/forumServer/config"
+	"github.com/krisshol/imt3501-Software-Security/cmd/forumServer/util"
 )
-
-// FetchHTML takes a filename of an html doc in the htmldirectory configured, reads and returns it.
-func FetchHTML(fileName string) string {
-
-	fmt.Printf("Http request for html file: %s\n", config.HtmlPath+fileName)
-	data, err := ioutil.ReadFile(config.HtmlPath + fileName) // Attempt to read desired file.
-	if err != nil {
-		fmt.Printf("Something went wrong fetching file: %s:\n %s\n\n", config.HtmlPath+fileName, string(data))
-	} else {
-
-		fmt.Printf("Serving\n\n")
-		return string(data)
-	}
-	return ""
-}
-
-// func parseURL(URL string) string {
-
-// 	fileNames := strings.Split(URL, "/")
-// 	fileName := strings.ToLower(fileNames[len(fileNames)-2]) + ".html" // Create desired filename path.
-
-// 	if fileName == ".html" {
-// 		fileName = "index.html"
-// 	}
-// 	return fileName
-// }
 
 // DefaultHandler returns index.html.
 func DefaultHandler(w http.ResponseWriter, r *http.Request) { // Default request handler handles domain/ requests.
@@ -41,7 +15,7 @@ func DefaultHandler(w http.ResponseWriter, r *http.Request) { // Default request
 	fmt.Print("Received a request to DefualtHandler\n")
 
 	// Default handler is only GET.
-	fmt.Fprint(w, FetchHTML("index.html"))
+	fmt.Fprint(w, util.FetchHTML("index.html"))
 
 }
 
@@ -53,14 +27,38 @@ func SignUpHandler(w http.ResponseWriter, r *http.Request) { // Default request 
 
 	switch r.Method {
 	case "GET":
-		fmt.Fprint(w, FetchHTML("signup.html"))
+		fmt.Fprint(w, util.FetchHTML("signup.html"))
 		break
 
 	case "POST":
+		r.ParseForm()
+		// Get fields from form:
+		userName := r.FormValue("username")
+		userEmail := r.FormValue("email")
+		password := r.FormValue("password")
+		passwordConfirm := r.FormValue("passwordConfirm")
 
+		// Validate input:
+		if !util.BasicValidate(userName) ||
+			!util.BasicValidate(userEmail, -1, config.MAX_EMAIL_LENGTH) ||
+			!util.BasicValidate(password, config.MIN_PASSWORD_LENGTH) ||
+			!util.BasicValidate(passwordConfirm, config.MIN_PASSWORD_LENGTH) {
+
+			w.WriteHeader(http.StatusBadRequest) // Bad input give errorcode 400 bad request.
+			fmt.Fprint(w, "Sorry, some of that was wrong.")
+			return
+		}
+		if password != passwordConfirm {
+
+			w.WriteHeader(http.StatusBadRequest) // Bad input give errorcode 400 bad request.
+			fmt.Fprint(w, "Passowords did not match.")
+			return
+		}
+
+		// TODO: insert user into DB.
+		fmt.Fprint(w, "All good, welcome to the team "+userName+"! :D")
 		break
 	}
-
 }
 
 // LoginHandler returns html page if GET, logs in user if POST.
@@ -71,7 +69,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) { // Default request h
 
 	switch r.Method {
 	case "GET":
-		fmt.Fprint(w, FetchHTML("login.html"))
+		fmt.Fprint(w, util.FetchHTML("login.html"))
 		break
 
 	case "POST":
