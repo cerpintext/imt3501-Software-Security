@@ -12,6 +12,11 @@ func main() {
 
 	config.Init()
 	fmt.Print("Starting server listening on " + config.Address + " with port " + config.Port + "\n")
+
+	// Handlers:
 	http.HandleFunc("/", app.DefaultHandler)
+	http.HandleFunc("/signup/", app.SignUpHandler)
+	http.HandleFunc("/login/", app.LoginHandler)
+
 	http.ListenAndServe(config.Address+":"+config.Port, nil) // Start serving incomming requests. Will continue to serve forever.
 }
