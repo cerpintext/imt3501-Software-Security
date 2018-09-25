@@ -26,6 +26,11 @@ type User struct {
 }
 
 type Message struct {
+	id            int
+	message       string
+	timestamp     int
+	username      string
+	parentMessage int
 }
 
 func openDB() {
@@ -81,6 +86,21 @@ func AddUser(username string, passwordHash string) {
 	db.close() // should find better way to handle db connection globally
 }
 
+//	How to use
+//	AddThread(Message{intId, "threadNamester", "existingUsername"})
 func AddMessage(message string, username string) {
-	openDB()
+	openDB()                          // should find better way to handle db connection globally
+	if c, ok := class.(Message); ok { // type assert on it
+		stmtIns, err := db.Prepare("INSERT INTO Message VALUES( ?, ?, ?, ?, ? )") // ? = placeholder
+		if err != nil {
+			panic(err.Error()) // Implement proper handlig
+		}
+		defer stmtIns.Close() // Close the statement when we leave function() / the program terminates
+		// Insert tuples (id, message, timestamp, username, parentMessage)
+		_, err = stmtIns.Exec(c.id, c.message, c.timestamp, c.username, c.parentMessage)
+		if err != nil {
+			panic(err.Error()) // Implement proper handlig
+		}
+	}
+	db.close() // should find better way to handle db connection globally
 }
