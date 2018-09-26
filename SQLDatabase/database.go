@@ -13,7 +13,7 @@ type Category struct {
 }
 
 type Thread struct {
-	id       int
+	//	id       int
 	name     string
 	username string
 }
@@ -22,14 +22,14 @@ type User struct {
 	username     string
 	email        string
 	passwordHash string
-	reputation   int
-	role         int
+	//	reputation   int
+	//	role         int
 }
 
 type Message struct {
-	id            int
-	message       string
-	timestamp     int
+	//	id            int
+	message string
+	//	timestamp     string
 	username      string
 	parentMessage int
 }
@@ -52,13 +52,13 @@ func openDB() {
 //	AddThread(Thread{intId, "name", "existingUsername"})
 func AddThread(class interface{}) {
 	if c, ok := class.(Thread); ok { // type assert on it
-		stmtIns, err := db.Prepare("INSERT INTO Thread VALUES( ?, ?, ? )") // ? = placeholder
+		stmtIns, err := db.Prepare("INSERT INTO Thread (`name`, `username`) VALUES( ?, ? )") // ? = placeholder
 		if err != nil {
 			panic(err.Error()) // Implement proper handlig
 		}
 		defer stmtIns.Close() // Close the statement when we leave function() / the program terminates
 
-		_, err = stmtIns.Exec(c.id, c.name, c.username) // Insert tuples (id, name, userName)
+		_, err = stmtIns.Exec(c.name, c.username) // Insert tuples (id, name, userName)
 		if err != nil {
 			errorHandling(err, "thread")
 		}
@@ -69,16 +69,18 @@ func AddThread(class interface{}) {
 //	AddUser(User{"userName", "email", "passwordHash" reputation, role})
 func AddUser(class interface{}) {
 	if c, ok := class.(User); ok { // type assert on it
-		stmtIns, err := db.Prepare("INSERT INTO User VALUES( ?, ?, ?, ?, ? )") // ? = placeholder
+		//	if checkUserExists(c.username) == true {
+		stmtIns, err := db.Prepare("INSERT INTO User (`username`, `email`, `passwordHash`) VALUES( ?, ?, ? )") // ? = placeholder
 		if err != nil {
 			panic(err.Error()) // Implement proper handlig
 		}
 		defer stmtIns.Close() // Close the statement when we leave function() / the program terminates
 		// Insert tuples (username, email, passwordHash, reputation, role)
-		_, err = stmtIns.Exec(c.username, c.email, c.passwordHash, c.reputation, c.role)
+		_, err = stmtIns.Exec(c.username, c.email, c.passwordHash)
 		if err != nil {
 			errorHandling(err, "user")
 		}
+		//	}
 	}
 }
 
@@ -87,13 +89,13 @@ func AddUser(class interface{}) {
 //		"timestamp on mysql accepted format e.g 1971-01-01 00:00:00 as a string", "username", parentMessage})
 func AddMessage(class interface{}) {
 	if c, ok := class.(Message); ok { // type assert on it
-		stmtIns, err := db.Prepare("INSERT INTO Message VALUES( ?, ?, ?, ?, ? )") // ? = placeholder
+		stmtIns, err := db.Prepare("INSERT INTO Message (`message`, `username`, `parentmessage`) VALUES( ?, ?, ? )") // ? = placeholder
 		if err != nil {
 			panic(err.Error()) // Implement proper handlig
 		}
 		defer stmtIns.Close() // Close the statement when we leave function() / the program terminates
-		// Insert tuples (id, message, timestamp, username, parentMessage)
-		_, err = stmtIns.Exec(c.id, c.message, c.timestamp, c.username, c.parentMessage)
+		// Insert tuples (message, username, parentMessage)
+		_, err = stmtIns.Exec(c.message, c.username, c.parentMessage)
 		if err != nil {
 			errorHandling(err, "message")
 		}
@@ -114,7 +116,7 @@ func errorHandling(err error, function string) {
 	} else if mysqlErr.Number == 1452 && function == "message" && string(runes[135:143]) == "username" { // Non existent user
 		log.Println("Hmm, that's not supposed to happen. User not found when posting message")
 	} else if mysqlErr.Number == 1452 && function == "message" && string(runes[135:148]) == "parentmessage" { // Non existent parent message
-		log.Println("Hmm, that's not supposed to happen. Parent message message not found")			// output might need to be changed
+		log.Println("Hmm, that's not supposed to happen. Parent message message not found") // output might need to be changed
 	} else { // Unkown error
 		//log.Println(string(runes[135:148]))
 		panic(err.Error())
