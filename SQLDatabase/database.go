@@ -51,8 +51,8 @@ func openDB() {
 //	AddMessage(Message{intId, "the message to be posten", \
 //		"timestamp on mysql accepted format e.g 1971-01-01 00:00:00 as a string", "parentMessage"})
 func AddThread(class interface{}) {
-	openDB()                          // should find better way to handle db connection globally
-	if c, ok := class.(Message); ok { // type assert on it
+	openDB()                         // should find better way to handle db connection globally
+	if c, ok := class.(Thread); ok { // type assert on it
 		stmtIns, err := db.Prepare("INSERT INTO Thread VALUES( ?, ?, ? )") // ? = placeholder
 		if err != nil {
 			panic(err.Error()) // Implement proper handlig
@@ -70,8 +70,8 @@ func AddThread(class interface{}) {
 //	How to use
 //	AddUser(Message{"userName", "email", "passwordHash" "reputation", "role"})
 func AddUser(class interface{}) {
-	openDB()                          // should find better way to handle db connection globally
-	if c, ok := class.(Message); ok { // type assert on it
+	openDB()                       // should find better way to handle db connection globally
+	if c, ok := class.(User); ok { // type assert on it
 		stmtIns, err := db.Prepare("INSERT INTO User VALUES( ?, ?, ?, ?, ? )") // ? = placeholder
 		if err != nil {
 			panic(err.Error()) // Implement proper handlig
