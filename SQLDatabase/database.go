@@ -35,11 +35,11 @@ type Message struct {
 	ParentMessage int
 }
 
-func openDB() {
+func OpenDB() {
 	var err error
 	db, err = sql.Open("mysql", "USERNAME:PASSWORD@tcp(IP-ADDRESS:PORT)/DATABASE")
 	if err != nil {
-		panic(err.Error()) // Implement proper handlig
+		panic(err.Error()) // TODO: Implement proper handlig
 	}
 
 	// Open doesn't open a connection. Validate DSN data:
@@ -55,7 +55,7 @@ func AddThread(class interface{}) {
 	if c, ok := class.(Thread); ok { // type assert on it
 		stmtIns, err := db.Prepare("INSERT INTO Thread (`name`, `username`) VALUES( ?, ? )") // ? = placeholder
 		if err != nil {
-			panic(err.Error()) // Implement proper handlig
+			panic(err.Error()) // TODO: Implement proper handlig
 		}
 		defer stmtIns.Close() // Close the statement when we leave function() / the program terminates
 
@@ -73,7 +73,7 @@ func AddUser(class interface{}) {
 		//	if checkUserExists(c.username) == true {
 		stmtIns, err := db.Prepare("INSERT INTO User (`username`, `email`, `passwordHash`) VALUES( ?, ?, ? )") // ? = placeholder
 		if err != nil {
-			panic(err.Error()) // Implement proper handlig
+			panic(err.Error()) // TODO: Implement proper handlig
 		}
 		defer stmtIns.Close() // Close the statement when we leave function() / the program terminates
 		// Insert tuples (username, email, passwordHash, reputation, role)
@@ -92,7 +92,7 @@ func AddMessage(class interface{}) {
 	if c, ok := class.(Message); ok { // type assert on it
 		stmtIns, err := db.Prepare("INSERT INTO Message (`message`, `username`, `parentmessage`) VALUES( ?, ?, ? )") // ? = placeholder
 		if err != nil {
-			panic(err.Error()) // Implement proper handlig
+			panic(err.Error()) // TODO: Implement proper handlig
 		}
 		defer stmtIns.Close() // Close the statement when we leave function() / the program terminates
 		// Insert tuples (message, username, parentMessage)
@@ -120,6 +120,6 @@ func errorHandling(err error, function string) {
 		log.Println("Hmm, that's not supposed to happen. Parent message message not found") // output might need to be changed
 	} else { // Unkown error
 		//log.Println(string(runes[135:148]))
-		panic(err.Error())
+		panic(err.Error()) // TODO: Implement proper handling.
 	}
 }
