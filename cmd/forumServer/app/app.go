@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/krisshol/imt3501-Software-Security/SQLDatabase"
 	"github.com/krisshol/imt3501-Software-Security/cmd/forumServer/config"
 	"github.com/krisshol/imt3501-Software-Security/cmd/forumServer/util"
 )
@@ -55,7 +56,14 @@ func SignUpHandler(w http.ResponseWriter, r *http.Request) { // Default request 
 			return
 		}
 
-		// TODO: insert user into DB.
+		// TODO: Hash password.
+
+		var user database.User // Create struct to store user input to be sent to db:
+		user.Username = userName
+		user.Email = userEmail
+		user.PasswordHash = password
+		database.AddUser(user) // Send struct to db.
+
 		fmt.Fprint(w, "All good, welcome to the team "+userName+"! :D")
 		break
 	}
