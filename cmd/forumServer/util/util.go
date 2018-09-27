@@ -3,6 +3,7 @@ package util
 import (
 	"fmt"
 	"io/ioutil"
+	"strings"
 
 	"github.com/krisshol/imt3501-Software-Security/cmd/forumServer/config"
 )
@@ -22,16 +23,16 @@ func FetchHTML(fileName string) string {
 	return ""
 }
 
-// func parseURL(URL string) string {
+// PrintURLAsSlice prints the individual URL indecies and values string split in "/".
+func PrintURLAsSlice(URL string) {
 
-// 	fileNames := strings.Split(URL, "/")
-// 	fileName := strings.ToLower(fileNames[len(fileNames)-2]) + ".html" // Create desired filename path.
-
-// 	if fileName == ".html" {
-// 		fileName = "index.html"
-// 	}
-// 	return fileName
-//
+	fmt.Printf("Printing URL as slice: %s\n", URL)
+	parts := strings.Split(URL, "/")
+	for i, part := range parts {
+		fmt.Printf("%d: %s\n", i, part)
+	}
+	fmt.Print("\n")
+}
 
 // BasicValidate returns false if any anomalies are detected, like empty string. Optional parameters are an int for custom min length, an int for custom max length.
 func BasicValidate(field string, param ...int) bool {
