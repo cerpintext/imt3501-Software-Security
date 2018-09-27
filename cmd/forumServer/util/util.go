@@ -51,11 +51,12 @@ func BasicValidate(field string, param ...int) bool {
 
 	if len(field) < minLength || len(field) >= maxLength {
 
-		fmt.Print("BaiscValidate. Input not valid: " + field)
+		fmt.Printf("BaiscValidate. Input not valid: %s\n\n", field)
 		return false
 	}
 
 	// TODO: More validation.
 
+	fmt.Printf("\nBasicValidate Input valid: (len: %d string: %s)\n\tString is less than max %d. String is more than min %d\n", len(field), field, maxLength, minLength)
 	return true
 }
