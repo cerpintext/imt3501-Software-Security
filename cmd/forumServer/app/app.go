@@ -3,6 +3,7 @@ package app
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/krisshol/imt3501-Software-Security/SQLDatabase"
 	"github.com/krisshol/imt3501-Software-Security/cmd/forumServer/config"
@@ -14,9 +15,20 @@ func DefaultHandler(w http.ResponseWriter, r *http.Request) { // Default request
 
 	w.Header().Set("Content-Type", "text/html") // The response will be an html document.
 	fmt.Print("Received a request to DefualtHandler\n")
+	util.PrintURLAsSlice(r.URL.Path)
 
-	// Default handler is only GET.
-	fmt.Fprint(w, util.FetchHTML("index.html"))
+	//Default handler is only GET. No Method switch.
+
+	parts := strings.Split(r.URL.Path, "/")
+
+	if len(parts) >= 3 && parts[1] == "page" { // If there is 2 komponents in URL and the first one is "page". >= 3 Because there is a / at the end of the path as well.
+
+		fmt.Fprint(w, util.FetchHTML(parts[2]+".html"))
+
+	} else {
+
+		fmt.Fprint(w, util.FetchHTML("index.html"))
+	}
 
 }
 
@@ -25,6 +37,7 @@ func SignUpHandler(w http.ResponseWriter, r *http.Request) { // Default request 
 
 	w.Header().Set("Content-Type", "text/html") // The response will be an html document.
 	fmt.Print("Received a request to SignUpHandler\n")
+	util.PrintURLAsSlice(r.URL.Path)
 
 	switch r.Method {
 	case "GET":
@@ -62,6 +75,8 @@ func SignUpHandler(w http.ResponseWriter, r *http.Request) { // Default request 
 		user.Username = userName
 		user.Email = userEmail
 		user.PasswordHash = password
+		fmt.Printf("User input accepted. Inserting into db: \nusername: %s\n", userName) // TODO: Remove test outprint.
+		database.OpenDB()
 		database.AddUser(user) // Send struct to db.
 
 		fmt.Fprint(w, "All good, welcome to the team "+userName+"! :D")
@@ -74,6 +89,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) { // Default request h
 
 	w.Header().Set("Content-Type", "text/html") // The response will be an html document.
 	fmt.Print("Received a request to SignUpHandler\n")
+	util.PrintURLAsSlice(r.URL.Path)
 
 	switch r.Method {
 	case "GET":
