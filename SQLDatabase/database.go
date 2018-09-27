@@ -33,6 +33,7 @@ type Message struct {
 	//	timestamp     string
 	Username      string
 	ParentMessage int
+	TimeStamp     int
 }
 
 func OpenDB() {
