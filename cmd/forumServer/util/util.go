@@ -31,7 +31,6 @@ func PrintURLAsSlice(URL string) {
 	for i, part := range parts {
 		fmt.Printf("%d: %s\n", i, part)
 	}
-	fmt.Print("\n")
 }
 
 // BasicValidate returns false if any anomalies are detected, like empty string. Optional parameters are an int for custom min length, an int for custom max length.
