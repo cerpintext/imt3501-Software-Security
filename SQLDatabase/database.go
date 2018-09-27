@@ -2,36 +2,37 @@ package database
 
 import (
 	"database/sql"
-	"github.com/go-sql-driver/mysql"
 	"log"
+
+	"github.com/go-sql-driver/mysql"
 )
 
 var db *sql.DB // global value for keeping database open
 
 type Category struct {
-	name string
+	Name string
 }
 
 type Thread struct {
 	//	id       int
-	name     string
-	username string
+	Name     string
+	Username string
 }
 
 type User struct {
-	username     string
-	email        string
-	passwordHash string
+	Username     string
+	Email        string
+	PasswordHash string
 	//	reputation   int
 	//	role         int
 }
 
 type Message struct {
 	//	id            int
-	message string
+	Message string
 	//	timestamp     string
-	username      string
-	parentMessage int
+	Username      string
+	ParentMessage int
 }
 
 func openDB() {
@@ -58,7 +59,7 @@ func AddThread(class interface{}) {
 		}
 		defer stmtIns.Close() // Close the statement when we leave function() / the program terminates
 
-		_, err = stmtIns.Exec(c.name, c.username) // Insert tuples (id, name, userName)
+		_, err = stmtIns.Exec(c.Name, c.Username) // Insert tuples (id, name, userName)
 		if err != nil {
 			errorHandling(err, "thread")
 		}
@@ -76,7 +77,7 @@ func AddUser(class interface{}) {
 		}
 		defer stmtIns.Close() // Close the statement when we leave function() / the program terminates
 		// Insert tuples (username, email, passwordHash, reputation, role)
-		_, err = stmtIns.Exec(c.username, c.email, c.passwordHash)
+		_, err = stmtIns.Exec(c.Username, c.Email, c.PasswordHash)
 		if err != nil {
 			errorHandling(err, "user")
 		}
@@ -95,7 +96,7 @@ func AddMessage(class interface{}) {
 		}
 		defer stmtIns.Close() // Close the statement when we leave function() / the program terminates
 		// Insert tuples (message, username, parentMessage)
-		_, err = stmtIns.Exec(c.message, c.username, c.parentMessage)
+		_, err = stmtIns.Exec(c.Message, c.Username, c.ParentMessage)
 		if err != nil {
 			errorHandling(err, "message")
 		}
