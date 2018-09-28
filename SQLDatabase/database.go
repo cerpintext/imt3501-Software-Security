@@ -2,8 +2,9 @@ package main
 
 import (
 	"database/sql"
-	"github.com/go-sql-driver/mysql"
 	"log"
+
+	"github.com/go-sql-driver/mysql"
 )
 
 var db *sql.DB // global value for keeping database open
@@ -34,11 +35,11 @@ type Message struct {
 	ParentMessage int
 }
 
-func openDB() {
+func OpenDB() {
 	var err error
 	db, err = sql.Open("mysql", "USERNAME:PASSWORD@tcp(IP-ADDRESS:PORT)/DATABASE")
 	if err != nil {
-		panic(err.Error()) // Implement proper handlig
+		panic(err.Error()) // TODO: Implement proper handlig
 	}
 
 	// Open doesn't open a connection. Validate DSN data:
@@ -56,7 +57,7 @@ func AddThread(c Thread) {
 	stmtIns, err := db.Prepare("INSERT INTO Thread (`name`, `username`) VALUES( ?, ? )") // ? = placeholder
 	if err != nil {
 		log.Fatalln("wut?")
-		panic(err.Error()) // Implement proper handlig
+		panic(err.Error()) // TODO: Implement proper handlig
 	}
 	defer stmtIns.Close()                     // Close the statement when we leave function() / the program terminates
 	_, err = stmtIns.Exec(c.Name, c.Username) // Insert tuples (name, userName)
@@ -71,7 +72,7 @@ func AddThread(c Thread) {
 func AddUser(c User) {
 	stmtIns, err := db.Prepare("INSERT INTO User (`username`, `email`, `passwordHash`) VALUES( ?, ?, ? )") // ? = placeholder
 	if err != nil {
-		log.Fatalln("Could not add new user, we're having issues the database")
+		panic(err.Error()) // TODO: Implement proper handlig
 	}
 	defer stmtIns.Close() // Close the statement when we leave function() / the program terminates
 	// Insert tuples (username, email, passwordHash, reputation, role)
@@ -88,7 +89,7 @@ func AddUser(c User) {
 func AddMessage(c Message) {
 	stmtIns, err := db.Prepare("INSERT INTO Message (`message`, `username`, `parentmessage`) VALUES( ?, ?, ? )") // ? = placeholder
 	if err != nil {
-		log.Fatalln("Could not add new message, we're having issues the database")
+		panic(err.Error()) // TODO: Implement proper handlig
 	}
 	defer stmtIns.Close() // Close the statement when we leave function() / the program terminates
 	// Insert tuples (message, username, parentMessage)
@@ -119,6 +120,6 @@ func errorHandling(err error, function string) {
 		log.Println("Could not connect to the database") // output might need to be changed
 	} else { // Unkown error
 		//log.Println(string(runes[135:148]))
-		panic(err.Error())
+		panic(err.Error()) // TODO: Implement proper handling.
 	}
 }

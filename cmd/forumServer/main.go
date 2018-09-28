@@ -17,6 +17,7 @@ func main() {
 	http.HandleFunc("/", app.DefaultHandler)
 	http.HandleFunc("/signup/", app.SignUpHandler)
 	http.HandleFunc("/login/", app.LoginHandler)
+	http.HandleFunc("/postmessage/", app.PostMessageHandler)
 
 	http.ListenAndServe(config.Address+":"+config.Port, nil) // Start serving incomming requests. Will continue to serve forever.
 }
