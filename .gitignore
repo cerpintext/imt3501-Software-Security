@@ -26,3 +26,4 @@ src/
 
 # Enviroment variable file that contains sensitive config information.
 .env
+.vscode/
