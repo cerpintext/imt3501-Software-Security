@@ -26,4 +26,10 @@ src/
 
 # Enviroment variable file that contains sensitive config information.
 .env
+
+
+# Visual code (ide) configuration.
 .vscode/
+
+# Configfile that may contain credentials. 
+cmd/forumServer/config/config.json
