@@ -25,10 +25,10 @@ There is a string focus on security in the application.
 ### MYSQL Database
 
 ## Dependencies
-    - github.com/subosito/gotenv
-        Gotenv is a very small library for reading .env files for golang programs.
     - github.com/go-sql-driver/mysql
         My SQL driver for golang.
+    - github.com/tkanos/gonfig
+        Reading for json files for system configuration.
 
 
 ## Installation
@@ -36,7 +36,7 @@ There is a string focus on security in the application.
 ```bash
 	git clone git@github.com:krisshol/imt3501-Software-Security.git
     cd imt3501-Software-Security/bin
-    go get github.com/subosito/gotenv
+    go get github.com/tkanos/gonfig
     go get github.com/go-sql-driver/mysql
     go build ../cmd/forumServer
     cp ../docs/envExample .env

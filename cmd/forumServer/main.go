@@ -11,7 +11,7 @@ import (
 func main() {
 
 	config.Init()
-	fmt.Print("Starting server listening on " + config.Address + " with port " + config.Port + "\n")
+	fmt.Printf("Starting server listening on %s with port %d\n", config.Config.Address, config.Config.Port)
 
 	// Handlers:
 	http.HandleFunc("/", app.DefaultHandler)
@@ -20,5 +20,5 @@ func main() {
 	http.HandleFunc("/postmessage/", app.PostMessageHandler)
 	http.HandleFunc("/postthread/", app.PostThreadHandler)
 
-	http.ListenAndServe(config.Address+":"+config.Port, nil) // Start serving incomming requests. Will continue to serve forever.
+	http.ListenAndServe(fmt.Sprintf("%s:%d", config.Config.Address, config.Config.Port), nil) // Start serving incomming requests. Will continue to serve forever.
 }

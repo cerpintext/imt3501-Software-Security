@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/go-sql-driver/mysql"
+	"github.com/krisshol/imt3501-Software-Security/cmd/forumServer/config"
 )
 
 var db *sql.DB // global value for keeping database open
@@ -38,7 +39,12 @@ type Message struct {
 
 func OpenDB() {
 	var err error
-	db, err = sql.Open("mysql", "USERNAME:PASSWORD@tcp(IP-ADDRESS:PORT)/DATABASE")
+	db, err = sql.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:%d)/%s",
+		config.Config.DatabaseUser,
+		config.Config.DatabasePassword,
+		config.Config.DatabaseAddress,
+		config.Config.DatabasePort,
+		config.Config.DatabaseDatabase))
 	if err != nil {
 		panic(err.Error()) // TODO: Implement proper handlig
 	}

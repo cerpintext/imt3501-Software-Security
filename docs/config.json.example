@@ -1,0 +1,12 @@
+{
+    "Port" :            5000,
+    "Address" :         "127.0.0.1",
+
+    "DatabasePort" :    0000,
+    "DatabaseAddress":  "",
+    "DatabaseDatabase" :"",
+    "DatabaseUser" :    "",
+    "DatabasePassword" :"",
+
+    "HtmlPath" :   ""
+}

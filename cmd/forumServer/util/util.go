@@ -14,10 +14,10 @@ import (
 // FetchHTML takes a filename of an html doc in the htmldirectory configured, reads and returns it.
 func FetchHTML(fileName string) string {
 
-	fmt.Printf("Http request for html file: %s\n", config.HtmlPath+fileName)
-	data, err := ioutil.ReadFile(config.HtmlPath + fileName) // Attempt to read desired file.
+	fmt.Printf("Http request for html file: %s\n", config.Config.HtmlPath+fileName)
+	data, err := ioutil.ReadFile(config.Config.HtmlPath + fileName) // Attempt to read desired file.
 	if err != nil {
-		fmt.Printf("Something went wrong fetching file: %s:\n %s\n\n", config.HtmlPath+fileName, string(data))
+		fmt.Printf("Something went wrong fetching file: %s:\n %s\n\n", config.Config.HtmlPath+fileName, string(data))
 	} else {
 
 		fmt.Printf("Serving\n\n")
