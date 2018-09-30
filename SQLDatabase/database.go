@@ -55,13 +55,28 @@ func OpenDB() {
 //	Only uses fields Name and Username
 //	How to use
 //	AddThread(Thread{anInt, "name", "existingUsername"})
-func AddThread(c Thread) {
+func AddThread(c Thread, m Message) {
 	stmtIns, err := db.Prepare("INSERT INTO Thread (`name`, `username`) VALUES( ?, ? )") // ? = placeholder
 	if err != nil {
 		panic(err.Error()) // TODO: Implement proper handlig
 	}
-	defer stmtIns.Close()                     // Close the statement when we leave function() / the program terminates
-	_, err = stmtIns.Exec(c.Name, c.Username) // Insert tuples (name, userName)
+	defer stmtIns.Close()                        // Close the statement when we leave function() / the program terminates
+	res, err := stmtIns.Exec(c.Name, c.Username) // Insert tuples (name, userName)
+	if err != nil {
+		errorHandling(err, "addThread")
+	}
+
+	threadID, err := res.LastInsertId() // Get IDs to create realtion between the Thread and its root Message.
+	if err != nil {
+		errorHandling(err, "addThread")
+	}
+	messageID := AddMessage(m)
+
+	stmtIns, err = db.Prepare("INSERT INTO ThreadMessages (`threadId`, `messageId`) VALUES( ?, ? )") // ? = placeholder
+	if err != nil {
+		panic(err.Error()) // TODO: Implement proper handlig
+	}
+	res, err = stmtIns.Exec(threadID, messageID) // Insert tuples (name, userName)
 	if err != nil {
 		errorHandling(err, "addThread")
 	}
@@ -87,17 +102,31 @@ func AddUser(c User) {
 //	How to use
 //	AddMessage(Message{anInt, "the message to be posted", \
 //		"", "username", parentMessage})
-func AddMessage(c Message) {
+func AddMessage(c Message) int {
 	stmtIns, err := db.Prepare("INSERT INTO Message (`message`, `username`, `parentmessage`) VALUES( ?, ?, ? )") // ? = placeholder
 	if err != nil {
 		panic(err.Error()) // TODO: Implement proper handlig
 	}
 	defer stmtIns.Close() // Close the statement when we leave function() / the program terminates
 	// Insert tuples (message, username, parentMessage)
-	_, err = stmtIns.Exec(c.Message, c.Username, c.ParentMessage)
+
+	var res sql.Result
+	if c.ParentMessage == -1 { // No parent. ints can't be nil in golang.
+
+		res, err = stmtIns.Exec(c.Message, c.Username, nil)
+	} else {
+
+		res, err = stmtIns.Exec(c.Message, c.Username, c.ParentMessage)
+	}
+
 	if err != nil {
 		errorHandling(err, "addMessage")
 	}
+	messageID, err := res.LastInsertId()
+	if err != nil {
+		errorHandling(err, "addThread")
+	}
+	return int(messageID)
 }
 
 /*************** Delete functions ***************/
@@ -183,7 +212,7 @@ func errorHandling(err error, function string) {
 	} else if mysqlErr.Number == 1054 { // Non existent parent message
 		log.Println(mysqlErr.Message) // output might need to be changed
 	} else { // Unkown error
-		log.Println(string(runes[135:143]))
-		//panic(err.Error())
+		//log.Println(string(runes[135:143])) // Causes out of bounds exceptions if error not long enough. Careful.
+		panic(err.Error())
 	}
 }

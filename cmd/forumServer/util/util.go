@@ -70,20 +70,23 @@ func ValidateMessage(messageText string, username string, parentMessage string) 
 
 	message.Message = messageText
 	message.Username = username
+
 	parent, err := strconv.Atoi(parentMessage)
 	if err != nil {
-		fmt.Printf("Failed to parse message.parentmessage, got: %s\n\n\n", parentMessage)
+		fmt.Printf("Validate Message: Failed to parse message.parentmessage, got: %s\n\n\n", parentMessage)
 		return message, errors.New("Message was invalid")
 	}
 	message.ParentMessage = parent
+
+	fmt.Printf("Validate Message: parentMessage: %d", parent)
 
 	// TODO: check if user exist.
 
 	if !BasicValidate(message.Message, -1, config.MAX_MESSAGE_LENGTH) ||
 		!BasicValidate(message.Username) ||
-		message.ParentMessage < 0 {
+		message.ParentMessage < -1 {
 
-		fmt.Print("Message rejected.\n\n")
+		fmt.Print("Validate Message: Message rejected.\n\n")
 		return message, errors.New("Message was invalid")
 	}
 

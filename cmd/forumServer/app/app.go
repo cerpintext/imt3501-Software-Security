@@ -133,10 +133,48 @@ func PostMessageHandler(w http.ResponseWriter, r *http.Request) { // Default req
 		return
 	}
 
-	fmt.Printf("User input accepted. Inserting message into db: \nmessage(first 20 chars): \"%s\"\nusername: %s\nparent: %d\n\n",
-		message.Message[0:20], message.Username, message.ParentMessage) // TODO: Remove test outprint.
+	// fmt.Printf("User input accepted. Inserting message into db: \nmessage(first 20 chars): \"%s\"\nusername: %s\nparent: %d\n\n",
+	// 	message.Message[0:20], message.Username, message.ParentMessage) // TODO: Remove test outprint.
 
 	database.OpenDB()
 	database.AddMessage(message)
+	fmt.Fprint(w, "Message sent.\n")
+}
+
+// PostMessageHandler returns html page if GET, logs in user if POST.
+func PostThreadHandler(w http.ResponseWriter, r *http.Request) { // Default request handler handles domain/ requests.
+
+	w.Header().Set("Content-Type", "text/html") // The response will be an html document.
+	fmt.Print("Received a request to PostThreadHandler\n")
+	util.PrintURLAsSlice(r.URL.Path) // TODO: Remove this outprint.
+
+	if r.Method != "POST" {
+		w.WriteHeader(http.StatusBadRequest) // Bad input give errorcode 400 bad request.
+		return
+	}
+
+	r.ParseForm()
+
+	message, err := util.ValidateMessage(r.FormValue("message"), r.FormValue("username"), r.FormValue("parentmessage"))
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest) // Bad input give errorcode 400 bad request.
+		fmt.Fprint(w, err)
+		return
+	}
+
+	var thread database.Thread
+	thread.Name = r.FormValue("threadname")
+	thread.Username = message.Username
+
+	if !util.BasicValidate(thread.Name) {
+		w.WriteHeader(http.StatusBadRequest) // Bad input give errorcode 400 bad request.
+		return
+	}
+
+	// fmt.Printf("User input accepted. Inserting thread into db:\nthread name(first 20 chars): %s\nmessage(first 20 chars): \"%s\"\n\n",
+	// 	thread.Name[0:20], message.Message[0:20]) // TODO: Remove test outprint.
+	database.OpenDB()
+	database.AddThread(thread, message)
+
 	fmt.Fprint(w, "Message sent.\n")
 }
