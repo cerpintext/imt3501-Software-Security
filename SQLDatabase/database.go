@@ -2,8 +2,10 @@ package database
 
 import (
 	"database/sql"
-	"github.com/go-sql-driver/mysql"
+	"fmt"
 	"log"
+
+	"github.com/go-sql-driver/mysql"
 )
 
 var db *sql.DB // global value for keeping database open
