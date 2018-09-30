@@ -11,7 +11,7 @@ var Address string // Localhost.
 var Port string    // Must be an open port. On linux open with $source PORT=5000
 var HtmlPath string
 
-const MIN_FIELD_LENGTH = 5      // Minimum length of generic fields.
+const MIN_FIELD_LENGTH = 1      // Minimum length of generic fields.
 const MAX_FIELD_LENGTH = 40     // Maximum length of generic fields.
 const MIN_PASSWORD_LENGTH = 8   // Minimum length of passwords.
 const MAX_EMAIL_LENGTH = 80     // Maximum length of emails.
