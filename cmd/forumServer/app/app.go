@@ -3,7 +3,6 @@ package app
 import (
 	"fmt"
 	"net/http"
-	"strconv"
 	"strings"
 
 	"github.com/krisshol/imt3501-Software-Security/SQLDatabase"
@@ -126,30 +125,16 @@ func PostMessageHandler(w http.ResponseWriter, r *http.Request) { // Default req
 	}
 
 	r.ParseForm()
-	var message database.Message
-	message.Message = r.FormValue("message")
-	message.Username = r.FormValue("username")
 
-	parent, err := strconv.Atoi(r.FormValue("parentmessage"))
+	message, err := util.ValidateMessage(r.FormValue("message"), r.FormValue("username"), r.FormValue("parentmessage"))
 	if err != nil {
-		fmt.Printf("Failed to parse message.parentmessage, got: %s\n\n\n", r.FormValue("parentmessage"))
 		w.WriteHeader(http.StatusBadRequest) // Bad input give errorcode 400 bad request.
-		return
-	}
-	message.ParentMessage = parent
-
-	if !util.BasicValidate(message.Message, -1, config.MAX_MESSAGE_LENGTH) ||
-		!util.BasicValidate(message.Username) ||
-		message.ParentMessage < 0 {
-
-		fmt.Fprint(w, "Message was invalid")
-		w.WriteHeader(http.StatusBadRequest) // Bad input give errorcode 400 bad request.
-		fmt.Print("Message rejected.\n\n")
+		fmt.Fprint(w, err)
 		return
 	}
 
 	fmt.Printf("User input accepted. Inserting message into db: \nmessage(first 20 chars): \"%s\"\nusername: %s\nparent: %d\n\n",
-		message.Message[0:20], message.Username, parent) // TODO: Remove test outprint.
+		message.Message[0:20], message.Username, message.ParentMessage) // TODO: Remove test outprint.
 
 	database.OpenDB()
 	database.AddMessage(message)
