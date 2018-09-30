@@ -95,7 +95,7 @@ func SignUpHandler(w http.ResponseWriter, r *http.Request) { // Default request 
 func LoginHandler(w http.ResponseWriter, r *http.Request) { // Default request handler handles domain/ requests.
 
 	w.Header().Set("Content-Type", "text/html") // The response will be an html document.
-	fmt.Print("Received a request to SignUpHandler\n")
+	fmt.Print("Received a request to LoginHandler\n")
 	util.PrintURLAsSlice(r.URL.Path)
 
 	switch r.Method {
@@ -117,7 +117,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) { // Default request h
 func PostMessageHandler(w http.ResponseWriter, r *http.Request) { // Default request handler handles domain/ requests.
 
 	w.Header().Set("Content-Type", "text/html") // The response will be an html document.
-	fmt.Print("Received a request to SignUpHandler\n")
+	fmt.Print("Received a request to PostMessageHandler\n")
 	util.PrintURLAsSlice(r.URL.Path)
 
 	if r.Method != "POST" {
