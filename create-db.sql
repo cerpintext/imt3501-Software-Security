@@ -28,13 +28,17 @@ CREATE TABLE IF NOT EXISTS `Message` (
     `message`       TEXT            NOT NULL,
     `timestamp`     TIMESTAMP       NOT NULL,
     `username`      VARCHAR (120)   NOT NULL,
+    `threadId`      INT UNSIGNED   NOT NULL,
     `parentmessage` INT UNSIGNED,
     PRIMARY KEY (id),
     FOREIGN KEY (username) REFERENCES User(username)
         ON UPDATE CASCADE
         ON DELETE CASCADE,
+    FOREIGN KEY (threadId) REFERENCES Thread(id)
+        ON UPDATE CASCADE
+        ON DELETE CASCADE,
     FOREIGN KEY (parentmessage) REFERENCES Message(id)
-        ON UPDATE RESTRICT 
+        ON UPDATE RESTRICT
         ON DELETE CASCADE
 );
 
@@ -45,8 +49,7 @@ CREATE TABLE IF NOT EXISTS `ThreadMessages` (
     FOREIGN KEY (threadId) REFERENCES Thread(id)
         ON UPDATE RESTRICT
         ON DELETE CASCADE,
-    FOREIGN KEY (messageId) REFERENCES Message(id) 
+    FOREIGN KEY (messageId) REFERENCES Message(id)
         ON UPDATE RESTRICT
         ON DELETE CASCADE
 );
-
