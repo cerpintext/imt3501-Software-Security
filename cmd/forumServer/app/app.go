@@ -22,7 +22,7 @@ func DefaultHandler(w http.ResponseWriter, r *http.Request) { // Default request
 	cookie, err := r.Cookie("session-id")
 	if err != nil {											//TODO: Verify that it is okay to not check error
 		id, _ := uuid.NewV4()
-		cookie = &http.Cookie {Name: "username", Value: id.String(), Expires: expire}
+		cookie = &http.Cookie {Name: "session", Value: id.String(), Expires: expire}
 		http.SetCookie(w, cookie)
 	}
 
