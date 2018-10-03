@@ -6,7 +6,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	
+	"github.com/nu7hatch/gouuid"
+
 	
 
 	"github.com/krisshol/imt3501-Software-Security/SQLDatabase"
@@ -18,8 +19,12 @@ import (
 func DefaultHandler(w http.ResponseWriter, r *http.Request) { // Default request handler handles domain/ requests.
 
 	expire := time.Now().AddDate(0, 0, 1)
-	cookie := &http.Cookie {Name: "username", Value: "some value", Expires: expire}
-	http.SetCookie(w, cookie)
+	cookie, err := r.Cookie("session-id")
+	if err != nil {											//TODO: Verify that it is okay to not check error
+		id, _ := uuid.NewV4()
+		cookie = &http.Cookie {Name: "username", Value: id.String(), Expires: expire}
+		http.SetCookie(w, cookie)
+	}
 
 	w.Header().Set("Content-Type", "text/html") // The response will be an html document.
 	fmt.Print("Received a request to DefualtHandler\n")
