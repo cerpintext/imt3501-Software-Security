@@ -135,6 +135,20 @@ func AddMessage(c Message) int {
 	return int(messageID)
 }
 
+/*************** Get functions ***************/
+
+func GetUser(username string) (User, error) {
+
+	var user User // QueryRow is using prepared statements. http://go-database-sql.org/retrieving.html
+	err := db.QueryRow("SELECT username, passwordhash FROM User WHERE username = ?", username).Scan(&user.Username, &user.PasswordHash)
+	if err != nil {
+		return User{}, err
+	}
+
+	return user, nil
+
+}
+
 /*************** Delete functions ***************/
 
 //	Only uses field Username

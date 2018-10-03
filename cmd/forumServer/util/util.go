@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"strconv"
 	"strings"
 
@@ -54,13 +55,13 @@ func BasicValidate(field string, param ...int) bool {
 
 	if len(field) < minLength || len(field) >= maxLength {
 
-		fmt.Printf("BaiscValidate. Input not valid: %s\n\n", field)
+		fmt.Printf("BaiscValidate() Input not valid: %s\n\n", field)
 		return false
 	}
 
 	// TODO: More validation.
 
-	fmt.Printf("\nBasicValidate Input valid: (len: %d string: %s)\n\tString is less than max %d. String is more than min %d\n", len(field), field, maxLength, minLength)
+	fmt.Printf("\nBasicValidate() Input valid: (len: %d string: %s)\n\tString is less than max %d. String is more than min %d\n", len(field), field, maxLength, minLength)
 	return true
 }
 
@@ -78,7 +79,7 @@ func ValidateMessage(messageText string, username string, parentMessage string) 
 	}
 	message.ParentMessage = parent
 
-	fmt.Printf("Validate Message: parentMessage: %d", parent)
+	fmt.Printf("Validate Message(): parentMessage: %d", parent)
 
 	// TODO: check if user exist.
 
@@ -86,10 +87,36 @@ func ValidateMessage(messageText string, username string, parentMessage string) 
 		!BasicValidate(message.Username) ||
 		message.ParentMessage < -1 {
 
-		fmt.Print("Validate Message: Message rejected.\n\n")
+		fmt.Print("Validate Message(): Message rejected.\n\n")
 		return message, errors.New("Message was invalid")
 	}
 
 	return message, nil
 
+}
+
+func IsLoggedIn(r *http.Request, username string) bool {
+
+	fmt.Printf("IsLoggedIn(): Checking if user %s is logged in.\n", username)
+	storedSession, exist := config.SessionMap[username]
+
+	if exist {
+
+		cookieSession, err := r.Cookie("session")
+		if err != nil { //The user has registered session but their cookie is expired.
+
+			fmt.Printf("IsLoggedIn(): User %s session was stored but session was expired. Deleting old session. User is NOT logged in.\n", username)
+			delete(config.SessionMap, username) // Delete stored session id.
+			return false
+		}
+
+		if cookieSession.Value == storedSession { // The user has registered session and  still has their cookie(not expired).
+
+			fmt.Printf("IsLoggedIn(): User %s is logged in.\n", username)
+			return true
+
+		}
+	}
+	fmt.Printf("IsLoggedIn(): User %s is NOT logged in.\n", username)
+	return false
 }

@@ -16,14 +16,6 @@ import (
 // DefaultHandler returns index.html.
 func DefaultHandler(w http.ResponseWriter, r *http.Request) { // Default request handler handles domain/ requests.
 
-	expire := time.Now().AddDate(0, 0, 1)
-	cookie, err := r.Cookie("session-id")
-	if err != nil { //TODO: Verify that it is okay to not check error
-		id, _ := uuid.NewV4()
-		cookie = &http.Cookie{Name: "session", Value: id.String(), Expires: expire}
-		http.SetCookie(w, cookie)
-	}
-
 	w.Header().Set("Content-Type", "text/html") // The response will be an html document.
 	fmt.Print("Received a request to DefualtHandler\n")
 	util.PrintURLAsSlice(r.URL.Path)
@@ -89,7 +81,7 @@ func SignUpHandler(w http.ResponseWriter, r *http.Request) { // Default request 
 		user.Username = userName
 		user.Email = userEmail
 		user.PasswordHash = password
-		fmt.Printf("User input accepted. Inserting user into db: \nusername: %s\n\n", userName) // TODO: Remove test outprint.
+		fmt.Printf("User input accepted. Inserting user into db: \nusername: %s\n\n", userName)
 		database.OpenDB()
 		database.AddUser(user) // Send struct to db.
 
@@ -114,7 +106,61 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) { // Default request h
 		break
 
 	case "POST":
+		r.ParseForm()
+		// Get fields from form:
+		username := r.FormValue("username")
+		password := r.FormValue("password")
 
+		// Validate input:
+		if !util.BasicValidate(username) ||
+			!util.BasicValidate(password, config.MIN_PASSWORD_LENGTH) {
+
+			w.WriteHeader(http.StatusBadRequest) // Bad input give errorcode 400 bad request.
+			fmt.Fprint(w, util.FetchHTML("login.html"))
+			fmt.Fprint(w, "Sorry, some of that was wrong.")
+			return
+		}
+		fmt.Print("User input accepted.\n")
+
+		if util.IsLoggedIn(r, username) { // The user has registered session and  still has their cookie(not expired).
+
+			w.WriteHeader(http.StatusBadRequest) // Bad input give errorcode 400 bad request.
+			fmt.Fprint(w, "You are already logged in.")
+			fmt.Printf("User: %s Is already logged in. Aboring login.\n\n", username)
+			return
+
+		}
+
+		database.OpenDB()
+		user, err := database.GetUser(username)
+
+		if err != nil { // Check if user in db.
+			w.WriteHeader(http.StatusBadRequest) // Bad input give errorcode 400 bad request.
+			fmt.Fprint(w, util.FetchHTML("login.html"))
+			fmt.Fprint(w, "Sorry, some of that was wrong.")
+			fmt.Printf("User: %s doesn't exist. Aboring login.\n\n", username)
+			return
+		}
+		if user.PasswordHash != password { // Check if password matches.
+			w.WriteHeader(http.StatusBadRequest) // Bad input give errorcode 400 bad request.
+			fmt.Fprint(w, util.FetchHTML("login.html"))
+			fmt.Fprint(w, "Sorry, some of that was wrong.")
+			fmt.Print("Wrong password. Aboring login.\n\n")
+			return
+		}
+
+		fmt.Printf("User exists. Password match. Attempting to store session id for user.")
+		expire := time.Now().AddDate(0, 0, config.SESSION_EXPIRE_DAYS)
+		cookie, err := r.Cookie("session")
+		if err != nil { //TODO: Verify that it is okay to not check error
+			id, _ := uuid.NewV4()
+			cookie = &http.Cookie{Name: "session", Value: id.String(), Path: "/", Expires: expire}
+			http.SetCookie(w, cookie)
+		}
+		config.SessionMap[username] = cookie.Value
+		fmt.Printf("Session generated:\n%s.\n \n", cookie.Value)
+
+		fmt.Fprint(w, "Logged in successfully")
 		break
 	default:
 		w.WriteHeader(http.StatusBadRequest) // Bad input give errorcode 400 bad request.
@@ -143,13 +189,17 @@ func PostMessageHandler(w http.ResponseWriter, r *http.Request) { // Default req
 		fmt.Fprint(w, err)
 		return
 	}
+	if !util.IsLoggedIn(r, message.Username) {
+		w.WriteHeader(http.StatusBadRequest) // Bad input give errorcode 400 bad request.
+		fmt.Fprint(w, "You need to log in first.")
+		return
+	}
 
-	// fmt.Printf("User input accepted. Inserting message into db: \nmessage(first 20 chars): \"%s\"\nusername: %s\nparent: %d\n\n",
-	// 	message.Message[0:20], message.Username, message.ParentMessage) // TODO: Remove test outprint.
-
+	fmt.Print("User input accepted. Inserting message into db\n")
 	database.OpenDB()
 	database.AddMessage(message)
 	fmt.Fprint(w, "Message sent.\n")
+
 }
 
 // PostMessageHandler returns html page if GET, logs in user if POST.
@@ -172,6 +222,11 @@ func PostThreadHandler(w http.ResponseWriter, r *http.Request) { // Default requ
 		fmt.Fprint(w, err)
 		return
 	}
+	if !util.IsLoggedIn(r, message.Username) {
+		w.WriteHeader(http.StatusBadRequest) // Bad input give errorcode 400 bad request.
+		fmt.Fprint(w, "You need to log in first.")
+		return
+	}
 
 	var thread database.Thread
 	thread.Name = r.FormValue("threadname")
@@ -189,17 +244,3 @@ func PostThreadHandler(w http.ResponseWriter, r *http.Request) { // Default requ
 
 	fmt.Fprint(w, "Message sent.\n")
 }
-
-//func Cookie (w http.ResponseWriter, r *http.Request) {
-
-//Alt1
-/*
-	http.SetCookie(w, &http.Cookie) {
-		Name: "my-cookie",
-		Value: "some value",
-	}*/
-
-//Alt2
-//cookie := http.Cookie {Name: "username", Value: "some value"}
-//http.SetCookie(w, &cookie)
-//}
