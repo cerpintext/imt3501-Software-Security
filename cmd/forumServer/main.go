@@ -21,6 +21,7 @@ func main() {
 	http.HandleFunc("/login/", app.LoginHandler)
 	http.HandleFunc("/postmessage/", app.PostMessageHandler)
 	http.HandleFunc("/postthread/", app.PostThreadHandler)
+	http.HandleFunc("/categories/", app.CategoriesHandler)
 
 	http.ListenAndServe(fmt.Sprintf("%s:%d", config.Config.Address, config.Config.Port), nil) // Start serving incomming requests. Will continue to serve forever.
 }
