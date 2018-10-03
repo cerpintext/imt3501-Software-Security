@@ -5,9 +5,8 @@ import (
 	"net/http"
 	"strings"
 	"time"
-	"github.com/nu7hatch/gouuid"
 
-	
+	"github.com/nu7hatch/gouuid"
 
 	"github.com/krisshol/imt3501-Software-Security/SQLDatabase"
 	"github.com/krisshol/imt3501-Software-Security/cmd/forumServer/config"
@@ -19,9 +18,9 @@ func DefaultHandler(w http.ResponseWriter, r *http.Request) { // Default request
 
 	expire := time.Now().AddDate(0, 0, 1)
 	cookie, err := r.Cookie("session-id")
-	if err != nil {											//TODO: Verify that it is okay to not check error
+	if err != nil { //TODO: Verify that it is okay to not check error
 		id, _ := uuid.NewV4()
-		cookie = &http.Cookie {Name: "session", Value: id.String(), Expires: expire}
+		cookie = &http.Cookie{Name: "session", Value: id.String(), Expires: expire}
 		http.SetCookie(w, cookie)
 	}
 
@@ -44,8 +43,6 @@ func DefaultHandler(w http.ResponseWriter, r *http.Request) { // Default request
 
 		fmt.Fprint(w, util.FetchHTML("index.html"))
 	}
-
-
 
 }
 
@@ -194,16 +191,15 @@ func PostThreadHandler(w http.ResponseWriter, r *http.Request) { // Default requ
 }
 
 //func Cookie (w http.ResponseWriter, r *http.Request) {
-	
 
-	//Alt1
-	/*
+//Alt1
+/*
 	http.SetCookie(w, &http.Cookie) {
 		Name: "my-cookie",
 		Value: "some value",
 	}*/
 
-	//Alt2
-	//cookie := http.Cookie {Name: "username", Value: "some value"}
-	//http.SetCookie(w, &cookie)
+//Alt2
+//cookie := http.Cookie {Name: "username", Value: "some value"}
+//http.SetCookie(w, &cookie)
 //}
