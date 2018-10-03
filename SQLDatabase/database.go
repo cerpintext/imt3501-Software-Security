@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"database/sql"
 	"log"
+	"strconv"
 
 	"github.com/go-sql-driver/mysql"
 	"github.com/krisshol/imt3501-Software-Security/cmd/forumServer/config"
@@ -143,18 +144,18 @@ func AddMessage(c Message) int {
 func GetThread(c Thread) {
 	stmtIns, err := db.Prepare("SELECT * FROM Message WHERE threadId = ?") // ? = placeholder
 	if err != nil {
-		log.Println("GT1 Prepareing thread failed")
+		log.Println("GT1 Could not get threads")
 		panic(err.Error()) // TODO: Implement proper handlig
 	}
 	defer stmtIns.Close() // Close the statement when we leave function() / the program terminates
 	rows, err := stmtIns.Query(c.Id) // Qurey the prepared statement
 	if err != nil {
-		log.Println("GT2 Could not query thread")
+		log.Println("GT2 Could not get threads")
 		panic(err.Error())
 	} else {
 		columns, err := rows.Columns()
 		if err != nil {
-			log.Println("GT3 Could not get coulmns from queried thread")
+			log.Println("GT3 Could not get threads")
 		}
 
 		// Make a slice for the values
@@ -173,7 +174,7 @@ func GetThread(c Thread) {
 			// get RawBytes from data
 			err = rows.Scan(scanArgs...)
 			if err != nil {
-				log.Println("GT4 Could process queried data")
+				log.Println("GT4 Could not show threads")
 			}
 
 			// Now do something with the data.
@@ -191,9 +192,80 @@ func GetThread(c Thread) {
 			fmt.Println("-----------------------------------")
 		}
 		if err = rows.Err(); err != nil {
-			panic(err.Error()) // proper error handling instead of panic in your app
+			log.Println("GT5 Could not show threads")
 		}
 	}
+}
+
+func ShowThreads() []Thread {
+	rows, err := db.Query("SELECT * FROM Thread")
+	if err != nil {
+		log.Println("ST1 Could not get threads")
+	}
+
+	// Get column names
+	columns, err := rows.Columns()
+	if err != nil {
+		log.Println("ST2 Could not get threads")
+	}
+
+	// Make a slice for the values
+	values := make([]sql.RawBytes, len(columns))
+
+	// rows.Scan wants '[]interface{}' as an argument, so we must copy the
+	// references into such a slice
+	// See http://code.google.com/p/go-wiki/wiki/InterfaceSlice for details
+	scanArgs := make([]interface{}, len(values))
+	for i := range values {
+		scanArgs[i] = &values[i]
+	}
+
+	var cnt int
+	_ = db.QueryRow("SELECT COUNT(*) FROM Thread").Scan(&cnt)
+	var slice = make([]Thread,cnt)
+	var s int = 0
+
+	// Fetch rows
+	log.Println("Fetching rows")
+	for rows.Next() {
+		// get RawBytes from data
+		err = rows.Scan(scanArgs...)
+		if err != nil {
+			log.Println("ST3 Could not show threads")
+		}
+
+		// Now do something with the data.
+		// Here we just print each column as a string.
+		var value string
+		for i, col := range values {
+			// Here we can check if the value is nil (NULL value)
+			if col == nil {
+				value = "NULL"
+			} else {
+				value = string(col)
+			}
+			switch columns[i] {
+			case "id":
+				slice[s].Id, err = strconv.Atoi(value)
+	//			fmt.Println("Reading value ", slice[s].Id, " from row ", s)
+				break
+			case "name":
+				slice[s].Name = value
+	//			fmt.Println("Reading value ", value, " from row ", s)
+				break
+			case "username":
+				slice[s].Username = value
+	//			fmt.Println("Reading value ", value, " from row ", s)
+				break
+
+			}
+		}
+		s++
+	}
+	if err = rows.Err(); err != nil {
+		log.Println("ST4 Could not show threads")
+	}
+	return slice
 }
 
 /*************** Delete functions ***************/
