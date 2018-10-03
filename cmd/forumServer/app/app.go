@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 	
+	
 
 	"github.com/krisshol/imt3501-Software-Security/SQLDatabase"
 	"github.com/krisshol/imt3501-Software-Security/cmd/forumServer/config"
@@ -15,6 +16,10 @@ import (
 
 // DefaultHandler returns index.html.
 func DefaultHandler(w http.ResponseWriter, r *http.Request) { // Default request handler handles domain/ requests.
+
+	expire := time.Now().AddDate(0, 0, 1)
+	cookie := &http.Cookie {Name: "username", Value: "some value", Expires: expire}
+	http.SetCookie(w, cookie)
 
 	w.Header().Set("Content-Type", "text/html") // The response will be an html document.
 	fmt.Print("Received a request to DefualtHandler\n")
@@ -35,43 +40,8 @@ func DefaultHandler(w http.ResponseWriter, r *http.Request) { // Default request
 
 		fmt.Fprint(w, util.FetchHTML("index.html"))
 	}
-	// setup cookie for deployment
-         // see http://golang.org/pkg/net/http/#Request.Cookie
 
-         // we will try to drop the cookie, if there's error
-         // this means that the same cookie has been dropped
-         // previously and display different message
-         c, err := r.Cookie("timevisited") //
 
-         expire := time.Now().AddDate(0, 0, 1)
-
-         cookieMonster := &http.Cookie{
-                 Name:  "timevisited",
-                 Expires: expire,
-                 Value: strconv.FormatInt(time.Now().Unix(), 10),
-         }
-
-         // http://golang.org/pkg/net/http/#SetCookie
-         // add Set-Cookie header
-         http.SetCookie(w, cookieMonster)
-
-         if err != nil {
-                 w.Write([]byte("Welcome! first time visitor!"))
-         } else {
-                 lasttime, _ := strconv.ParseInt(c.Value, 10, 0)
-                 html := "Hey! Hello again!, your last visit was at "
-                 html = html + time.Unix(lasttime, 0).Format("15:04:05")
-                 w.Write([]byte(html))
-         }
-	/*
-	expire := time.Now().AddDate(0, 0, 1)
-	cookie := &http.Cookie {Name: "username", Value: "some value", Expires: expire}
-	http.SetCookie(w, cookie)*/
-	/*	
-	http.SetCookie(w, &http.Cookie {
-		Name: "my-cookie",
-		Value: "some value",
-	})*/
 
 }
 
