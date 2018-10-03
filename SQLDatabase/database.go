@@ -1,7 +1,6 @@
 package database
 
 import (
-	"fmt"
 	"database/sql"
 	"log"
 	"strconv"
@@ -136,7 +135,19 @@ func AddMessage(c Message) int {
 	return int(messageID)
 }
 
-/*************** Select / Get functions ***************/
+/*************** Get functions ***************/
+
+func GetUser(username string) (User, error) {
+
+	var user User // QueryRow is using prepared statements. http://go-database-sql.org/retrieving.html
+	err := db.QueryRow("SELECT username, passwordhash FROM User WHERE username = ?", username).Scan(&user.Username, &user.PasswordHash)
+	if err != nil {
+		return User{}, err
+	}
+
+	return user, nil
+
+}
 
 //	Only uses fields Id
 //	How to use
@@ -147,7 +158,7 @@ func GetThread(c Thread) {
 		log.Println("GT1 Could not get threads")
 		panic(err.Error()) // TODO: Implement proper handlig
 	}
-	defer stmtIns.Close() // Close the statement when we leave function() / the program terminates
+	defer stmtIns.Close()            // Close the statement when we leave function() / the program terminates
 	rows, err := stmtIns.Query(c.Id) // Qurey the prepared statement
 	if err != nil {
 		log.Println("GT2 Could not get threads")
@@ -222,7 +233,7 @@ func ShowThreads() []Thread {
 
 	var cnt int
 	_ = db.QueryRow("SELECT COUNT(*) FROM Thread").Scan(&cnt)
-	var slice = make([]Thread,cnt)
+	var slice = make([]Thread, cnt)
 	var s int = 0
 
 	// Fetch rows
@@ -247,15 +258,15 @@ func ShowThreads() []Thread {
 			switch columns[i] {
 			case "id":
 				slice[s].Id, err = strconv.Atoi(value)
-	//			fmt.Println("Reading value ", slice[s].Id, " from row ", s)
+				//			fmt.Println("Reading value ", slice[s].Id, " from row ", s)
 				break
 			case "name":
 				slice[s].Name = value
-	//			fmt.Println("Reading value ", value, " from row ", s)
+				//			fmt.Println("Reading value ", value, " from row ", s)
 				break
 			case "username":
 				slice[s].Username = value
-	//			fmt.Println("Reading value ", value, " from row ", s)
+				//			fmt.Println("Reading value ", value, " from row ", s)
 				break
 
 			}

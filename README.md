@@ -25,10 +25,13 @@ There is a string focus on security in the application.
 ### MYSQL Database
 
 ## Dependencies
-    - github.com/go-sql-driver/mysql
-        My SQL driver for golang.
-    - github.com/tkanos/gonfig
-        Reading for json files for system configuration.
+- github.com/go-sql-driver/mysql
+    My SQL driver for golang.
+- github.com/tkanos/gonfig
+    Reading for json files for system configuration.
+- github.com/nu7hatch/gouuid
+    Generating session ids.
+
 
 
 ## Installation

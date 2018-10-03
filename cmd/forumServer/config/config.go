@@ -14,6 +14,7 @@ const MAX_FIELD_LENGTH = 40     // Maximum length of generic fields.
 const MIN_PASSWORD_LENGTH = 8   // Minimum length of passwords.
 const MAX_EMAIL_LENGTH = 80     // Maximum length of emails.
 const MAX_MESSAGE_LENGTH = 2000 // Maximum length of messages.
+const SESSION_EXPIRE_DAYS = 1   // How many days have to pass before a cookie expires.
 
 type Configuration struct {
 	Port             int    // The port the server will listen on.
@@ -27,10 +28,11 @@ type Configuration struct {
 }
 
 var Config Configuration
+var SessionMap map[string]string // A key-value container to store sessionIds in relation to users.
 
 // Init loads parameters json file.
 func Init() {
-
+	SessionMap = make(map[string]string)
 	ReadConfigFromFile("config.json")
 }
 
