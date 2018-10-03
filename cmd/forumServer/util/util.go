@@ -1,20 +1,23 @@
 package util
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
+	"strconv"
 	"strings"
 
+	database "github.com/krisshol/imt3501-Software-Security/SQLDatabase"
 	"github.com/krisshol/imt3501-Software-Security/cmd/forumServer/config"
 )
 
 // FetchHTML takes a filename of an html doc in the htmldirectory configured, reads and returns it.
 func FetchHTML(fileName string) string {
 
-	fmt.Printf("Http request for html file: %s\n", config.HtmlPath+fileName)
-	data, err := ioutil.ReadFile(config.HtmlPath + fileName) // Attempt to read desired file.
+	fmt.Printf("Http request for html file: %s\n", config.Config.HtmlPath+fileName)
+	data, err := ioutil.ReadFile(config.Config.HtmlPath + fileName) // Attempt to read desired file.
 	if err != nil {
-		fmt.Printf("Something went wrong fetching file: %s:\n %s\n\n", config.HtmlPath+fileName, string(data))
+		fmt.Printf("Something went wrong fetching file: %s:\n %s\n\n", config.Config.HtmlPath+fileName, string(data))
 	} else {
 
 		fmt.Printf("Serving\n\n")
@@ -59,4 +62,34 @@ func BasicValidate(field string, param ...int) bool {
 
 	fmt.Printf("\nBasicValidate Input valid: (len: %d string: %s)\n\tString is less than max %d. String is more than min %d\n", len(field), field, maxLength, minLength)
 	return true
+}
+
+func ValidateMessage(messageText string, username string, parentMessage string) (database.Message, error) {
+
+	var message database.Message
+
+	message.Message = messageText
+	message.Username = username
+
+	parent, err := strconv.Atoi(parentMessage)
+	if err != nil {
+		fmt.Printf("Validate Message: Failed to parse message.parentmessage, got: %s\n\n\n", parentMessage)
+		return message, errors.New("Message was invalid")
+	}
+	message.ParentMessage = parent
+
+	fmt.Printf("Validate Message: parentMessage: %d", parent)
+
+	// TODO: check if user exist.
+
+	if !BasicValidate(message.Message, -1, config.MAX_MESSAGE_LENGTH) ||
+		!BasicValidate(message.Username) ||
+		message.ParentMessage < -1 {
+
+		fmt.Print("Validate Message: Message rejected.\n\n")
+		return message, errors.New("Message was invalid")
+	}
+
+	return message, nil
+
 }
