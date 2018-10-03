@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
+	
 
 	"github.com/krisshol/imt3501-Software-Security/SQLDatabase"
 	"github.com/krisshol/imt3501-Software-Security/cmd/forumServer/config"
@@ -33,6 +35,43 @@ func DefaultHandler(w http.ResponseWriter, r *http.Request) { // Default request
 
 		fmt.Fprint(w, util.FetchHTML("index.html"))
 	}
+	// setup cookie for deployment
+         // see http://golang.org/pkg/net/http/#Request.Cookie
+
+         // we will try to drop the cookie, if there's error
+         // this means that the same cookie has been dropped
+         // previously and display different message
+         c, err := r.Cookie("timevisited") //
+
+         expire := time.Now().AddDate(0, 0, 1)
+
+         cookieMonster := &http.Cookie{
+                 Name:  "timevisited",
+                 Expires: expire,
+                 Value: strconv.FormatInt(time.Now().Unix(), 10),
+         }
+
+         // http://golang.org/pkg/net/http/#SetCookie
+         // add Set-Cookie header
+         http.SetCookie(w, cookieMonster)
+
+         if err != nil {
+                 w.Write([]byte("Welcome! first time visitor!"))
+         } else {
+                 lasttime, _ := strconv.ParseInt(c.Value, 10, 0)
+                 html := "Hey! Hello again!, your last visit was at "
+                 html = html + time.Unix(lasttime, 0).Format("15:04:05")
+                 w.Write([]byte(html))
+         }
+	/*
+	expire := time.Now().AddDate(0, 0, 1)
+	cookie := &http.Cookie {Name: "username", Value: "some value", Expires: expire}
+	http.SetCookie(w, cookie)*/
+	/*	
+	http.SetCookie(w, &http.Cookie {
+		Name: "my-cookie",
+		Value: "some value",
+	})*/
 
 }
 
@@ -155,3 +194,18 @@ func PostMessageHandler(w http.ResponseWriter, r *http.Request) { // Default req
 	database.AddMessage(message)
 	fmt.Fprint(w, "Message sent.\n")
 }
+
+//func Cookie (w http.ResponseWriter, r *http.Request) {
+	
+
+	//Alt1
+	/*
+	http.SetCookie(w, &http.Cookie) {
+		Name: "my-cookie",
+		Value: "some value",
+	}*/
+
+	//Alt2
+	//cookie := http.Cookie {Name: "username", Value: "some value"}
+	//http.SetCookie(w, &cookie)
+//}
