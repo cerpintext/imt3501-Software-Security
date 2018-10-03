@@ -6,11 +6,13 @@ import (
 
 	"github.com/krisshol/imt3501-Software-Security/cmd/forumServer/app"
 	"github.com/krisshol/imt3501-Software-Security/cmd/forumServer/config"
+	"github.com/krisshol/imt3501-Software-Security/SQLDatabase"
 )
 
 func main() {
 
 	config.Init()
+	database.OpenDB()
 	fmt.Printf("Starting server listening on %s with port %d\n", config.Config.Address, config.Config.Port)
 
 	// Handlers:

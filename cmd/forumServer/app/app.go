@@ -7,7 +7,7 @@ import (
 	"time"
 	"github.com/nu7hatch/gouuid"
 
-	
+
 
 	"github.com/krisshol/imt3501-Software-Security/SQLDatabase"
 	"github.com/krisshol/imt3501-Software-Security/cmd/forumServer/config"
@@ -36,7 +36,7 @@ func DefaultHandler(w http.ResponseWriter, r *http.Request) { // Default request
 
 	parts := strings.Split(r.URL.Path, "/")
 
-	if len(parts) >= 3 && parts[1] == "page" { // If there is 2 komponents in URL and the first one is "page". >= 3 Because there is a / at the end of the path as well.
+	if len(parts) >= 3 && parts[1] == "page" { // If there is 2 components in URL and the first one is "page". >= 3 Because there is a / at the end of the path as well.
 
 		fmt.Fprint(w, util.FetchHTML(parts[2]+".html"))
 
@@ -93,7 +93,6 @@ func SignUpHandler(w http.ResponseWriter, r *http.Request) { // Default request 
 		user.Email = userEmail
 		user.PasswordHash = password
 		fmt.Printf("User input accepted. Inserting user into db: \nusername: %s\n\n", userName) // TODO: Remove test outprint.
-		database.OpenDB()
 		database.AddUser(user) // Send struct to db.
 
 		fmt.Fprint(w, "All good, welcome to the team "+userName+"! :D")
@@ -150,7 +149,6 @@ func PostMessageHandler(w http.ResponseWriter, r *http.Request) { // Default req
 	// fmt.Printf("User input accepted. Inserting message into db: \nmessage(first 20 chars): \"%s\"\nusername: %s\nparent: %d\n\n",
 	// 	message.Message[0:20], message.Username, message.ParentMessage) // TODO: Remove test outprint.
 
-	database.OpenDB()
 	database.AddMessage(message)
 	fmt.Fprint(w, "Message sent.\n")
 }
@@ -187,14 +185,13 @@ func PostThreadHandler(w http.ResponseWriter, r *http.Request) { // Default requ
 
 	// fmt.Printf("User input accepted. Inserting thread into db:\nthread name(first 20 chars): %s\nmessage(first 20 chars): \"%s\"\n\n",
 	// 	thread.Name[0:20], message.Message[0:20]) // TODO: Remove test outprint.
-	database.OpenDB()
 	database.AddThread(thread, message)
 
 	fmt.Fprint(w, "Message sent.\n")
 }
 
 //func Cookie (w http.ResponseWriter, r *http.Request) {
-	
+
 
 	//Alt1
 	/*
