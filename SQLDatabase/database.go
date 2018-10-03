@@ -3,6 +3,7 @@ package database
 import (
 	"database/sql"
 	"log"
+	"fmt"
 	"strconv"
 
 	"github.com/go-sql-driver/mysql"

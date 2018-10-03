@@ -289,3 +289,4 @@ func CategoriesHandler(w http.ResponseWriter, r *http.Request) { // Default requ
 		w.WriteHeader(http.StatusBadRequest) // Bad input give errorcode 400 bad request.
 		return
 	}
+}
