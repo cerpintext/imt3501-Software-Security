@@ -3,7 +3,6 @@ package app
 import (
 	"fmt"
 	"net/http"
-	"strconv"
 	"strings"
 	"time"
 
@@ -11,6 +10,7 @@ import (
 
 	"github.com/krisshol/imt3501-Software-Security/SQLDatabase"
 	"github.com/krisshol/imt3501-Software-Security/cmd/forumServer/config"
+	"github.com/krisshol/imt3501-Software-Security/cmd/forumServer/htmlGeneration"
 	"github.com/krisshol/imt3501-Software-Security/cmd/forumServer/util"
 )
 
@@ -34,6 +34,7 @@ func DefaultHandler(w http.ResponseWriter, r *http.Request) { // Default request
 	} else {
 
 		fmt.Fprint(w, util.FetchHTML("index.html"))
+		fmt.Fprint(w, htmlGeneration.GenerateCategoryList())
 	}
 
 }
@@ -230,37 +231,14 @@ func CategoriesHandler(w http.ResponseWriter, r *http.Request) { // Default requ
 
 	w.Header().Set("Content-Type", "text/html") // The response will be an html document.
 	fmt.Print("Received a request to CategoriesHandler\n")
+	util.PrintURLAsSlice(r.URL.Path)
+	parts := strings.Split(r.URL.Path, "/")
+	category := parts[2]
 
 	switch r.Method {
 	case "GET":
 		fmt.Fprint(w, util.FetchHTML("categories.html"))
-		viewThreads := database.ShowThreads()
-		w.Write([]byte(`<ul>`))
-		for _, vThread := range viewThreads {
-			fmt.Println("Id: ", vThread.Id)
-			fmt.Println("Name: ", vThread.Name)
-			fmt.Println("Username: ", vThread.Username)
-			fmt.Println("")
-
-			w.Write([]byte(`
-  <li><h3>
-	<input type="hidden" id="threadId" name="custId" value="`))
-			w.Write([]byte(strconv.Itoa(vThread.Id)))
-			w.Write([]byte(`"> `))
-			w.Write([]byte(`
-    <div id="textbox">
-      	<p class="alignleft">`))
-			w.Write([]byte(vThread.Name))
-			w.Write([]byte(`</p>
-	  	<p align=right><small><small>Username: `))
-			w.Write([]byte(vThread.Username))
-			w.Write([]byte(`</small></small></p>
-    </div>
-  </h3></li>
-`))
-		}
-		w.Write([]byte(`
-<ul>`))
+		fmt.Fprint(w, htmlGeneration.GenerateTreadList(category))
 		break
 
 	case "POST":
