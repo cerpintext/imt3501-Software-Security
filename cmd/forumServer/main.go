@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/krisshol/imt3501-Software-Security/SQLDatabase"
 	"github.com/krisshol/imt3501-Software-Security/cmd/forumServer/app"
 	"github.com/krisshol/imt3501-Software-Security/cmd/forumServer/config"
-	"github.com/krisshol/imt3501-Software-Security/SQLDatabase"
 )
 
 func main() {

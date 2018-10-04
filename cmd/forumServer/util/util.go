@@ -65,58 +65,74 @@ func BasicValidate(field string, param ...int) bool {
 	return true
 }
 
-func ValidateMessage(messageText string, username string, parentMessage string) (database.Message, error) {
+func ValidateMessage(r *http.Request) (database.Message, error) {
+
+	if !IsLoggedIn(r) { // check if user is logged in. If not abort.
+		return database.Message{}, errors.New("User not logged in")
+	}
 
 	var message database.Message
+	cookieUsername, _ := r.Cookie("username") // We already knows the cookie is there from IsLoggedIn.
+	message.Username = cookieUsername.Value
 
-	message.Message = messageText
-	message.Username = username
+	r.ParseForm()
 
-	parent, err := strconv.Atoi(parentMessage)
+	message.Message = r.FormValue("message")
+
+	parent, err := strconv.Atoi(r.FormValue("parentmessage"))
 	if err != nil {
-		fmt.Printf("Validate Message: Failed to parse message.parentmessage, got: %s\n\n\n", parentMessage)
-		return message, errors.New("Message was invalid")
+		fmt.Printf("Validate Message: Failed to parse message.parentmessage, got: %s\n\n\n", r.FormValue("parentmessage"))
+		return database.Message{}, errors.New("Message was invalid")
 	}
 	message.ParentMessage = parent
 
 	fmt.Printf("Validate Message(): parentMessage: %d", parent)
 
-	// TODO: check if user exist.
-
 	if !BasicValidate(message.Message, -1, config.MAX_MESSAGE_LENGTH) ||
-		!BasicValidate(message.Username) ||
 		message.ParentMessage < -1 {
 
 		fmt.Print("Validate Message(): Message rejected.\n\n")
-		return message, errors.New("Message was invalid")
+		return database.Message{}, errors.New("Message was invalid")
 	}
 
 	return message, nil
 
 }
 
-func IsLoggedIn(r *http.Request, username string) bool {
+func IsLoggedIn(r *http.Request) bool {
 
-	fmt.Printf("IsLoggedIn(): Checking if user %s is logged in.\n", username)
-	storedSession, exist := config.SessionMap[username]
+	fmt.Printf("IsLoggedIn(): Checking if user is logged in.\n")
+
+	cookieUsername, err := r.Cookie("username")
+	if err != nil { //The user has registered session but their cookie is expired.
+
+		fmt.Printf("IsLoggedIn(): User session was expired.(Missing username cookie). User is NOT logged in.\n")
+		return false
+	}
+	fmt.Printf("IsLoggedIn():Username cookie found: %s\n", cookieUsername.Value)
+
+	storedSession, exist := config.SessionMap[cookieUsername.Value]
 
 	if exist {
+
+		fmt.Printf("IsLoggedIn():Session entry found: %s\n", storedSession)
 
 		cookieSession, err := r.Cookie("session")
 		if err != nil { //The user has registered session but their cookie is expired.
 
-			fmt.Printf("IsLoggedIn(): User %s session was stored but session was expired. Deleting old session. User is NOT logged in.\n", username)
-			delete(config.SessionMap, username) // Delete stored session id.
+			fmt.Printf("IsLoggedIn(): User %s session was stored but session was expired. Deleting old session. User is NOT logged in.\n", cookieUsername.Value)
+			delete(config.SessionMap, cookieUsername.Value) // Delete stored session id.
 			return false
 		}
+		fmt.Printf("IsLoggedIn():Session cookie found: %s\n", cookieSession.Value)
 
 		if cookieSession.Value == storedSession { // The user has registered session and  still has their cookie(not expired).
 
-			fmt.Printf("IsLoggedIn(): User %s is logged in.\n", username)
+			fmt.Printf("IsLoggedIn(): User %s is logged in.\n", cookieUsername.Value)
 			return true
 
 		}
 	}
-	fmt.Printf("IsLoggedIn(): User %s is NOT logged in.\n", username)
+	fmt.Printf("IsLoggedIn(): User %s is NOT logged in.\n", cookieUsername.Value)
 	return false
 }

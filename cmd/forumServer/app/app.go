@@ -3,12 +3,11 @@ package app
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
-	"strconv"
+
 	"github.com/nu7hatch/gouuid"
-
-
 
 	"github.com/krisshol/imt3501-Software-Security/SQLDatabase"
 	"github.com/krisshol/imt3501-Software-Security/cmd/forumServer/config"
@@ -20,7 +19,6 @@ func DefaultHandler(w http.ResponseWriter, r *http.Request) { // Default request
 
 	w.Header().Set("Content-Type", "text/html") // The response will be an html document.
 	fmt.Print("Received a request to DefualtHandler\n")
-	util.PrintURLAsSlice(r.URL.Path)
 
 	if r.Method != "GET" { //Default handler is only GET. No Method switch.
 		w.WriteHeader(http.StatusBadRequest) // Bad input give errorcode 400 bad request.
@@ -45,7 +43,6 @@ func SignUpHandler(w http.ResponseWriter, r *http.Request) { // Default request 
 
 	w.Header().Set("Content-Type", "text/html") // The response will be an html document.
 	fmt.Print("Received a request to SignUpHandler\n")
-	util.PrintURLAsSlice(r.URL.Path)
 
 	switch r.Method {
 	case "GET":
@@ -84,7 +81,7 @@ func SignUpHandler(w http.ResponseWriter, r *http.Request) { // Default request 
 		user.Email = userEmail
 		user.PasswordHash = password
 		fmt.Printf("User input accepted. Inserting user into db: \nusername: %s\n\n", userName) // TODO: Remove test outprint.
-		database.AddUser(user) // Send struct to db.
+		database.AddUser(user)                                                                  // Send struct to db.
 
 		fmt.Fprint(w, "All good, welcome to the team "+userName+"! :D")
 		break
@@ -99,7 +96,6 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) { // Default request h
 
 	w.Header().Set("Content-Type", "text/html") // The response will be an html document.
 	fmt.Print("Received a request to LoginHandler\n")
-	util.PrintURLAsSlice(r.URL.Path)
 
 	switch r.Method {
 	case "GET":
@@ -123,7 +119,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) { // Default request h
 		}
 		fmt.Print("User input accepted.\n")
 
-		if util.IsLoggedIn(r, username) { // The user has registered session and  still has their cookie(not expired).
+		if util.IsLoggedIn(r) { // The user has registered session and  still has their cookie(not expired).
 
 			w.WriteHeader(http.StatusBadRequest) // Bad input give errorcode 400 bad request.
 			fmt.Fprint(w, "You are already logged in.")
@@ -155,6 +151,8 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) { // Default request h
 		cookie, err := r.Cookie("session")
 		if err != nil { //TODO: Verify that it is okay to not check error
 			id, _ := uuid.NewV4()
+			cookie = &http.Cookie{Name: "username", Value: username, Path: "/", Expires: expire}
+			http.SetCookie(w, cookie)
 			cookie = &http.Cookie{Name: "session", Value: id.String(), Path: "/", Expires: expire}
 			http.SetCookie(w, cookie)
 		}
@@ -175,24 +173,16 @@ func PostMessageHandler(w http.ResponseWriter, r *http.Request) { // Default req
 
 	w.Header().Set("Content-Type", "text/html") // The response will be an html document.
 	fmt.Print("Received a request to PostMessageHandler\n")
-	util.PrintURLAsSlice(r.URL.Path)
 
 	if r.Method != "POST" {
 		w.WriteHeader(http.StatusBadRequest) // Bad input give errorcode 400 bad request.
 		return
 	}
 
-	r.ParseForm()
-
-	message, err := util.ValidateMessage(r.FormValue("message"), r.FormValue("username"), r.FormValue("parentmessage"))
+	message, err := util.ValidateMessage(r)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest) // Bad input give errorcode 400 bad request.
 		fmt.Fprint(w, err)
-		return
-	}
-	if !util.IsLoggedIn(r, message.Username) {
-		w.WriteHeader(http.StatusBadRequest) // Bad input give errorcode 400 bad request.
-		fmt.Fprint(w, "You need to log in first.")
 		return
 	}
 
@@ -207,24 +197,16 @@ func PostThreadHandler(w http.ResponseWriter, r *http.Request) { // Default requ
 
 	w.Header().Set("Content-Type", "text/html") // The response will be an html document.
 	fmt.Print("Received a request to PostThreadHandler\n")
-	util.PrintURLAsSlice(r.URL.Path) // TODO: Remove this outprint.
 
 	if r.Method != "POST" {
 		w.WriteHeader(http.StatusBadRequest) // Bad input give errorcode 400 bad request.
 		return
 	}
 
-	r.ParseForm()
-
-	message, err := util.ValidateMessage(r.FormValue("message"), r.FormValue("username"), r.FormValue("parentmessage"))
+	message, err := util.ValidateMessage(r)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest) // Bad input give errorcode 400 bad request.
 		fmt.Fprint(w, err)
-		return
-	}
-	if !util.IsLoggedIn(r, message.Username) {
-		w.WriteHeader(http.StatusBadRequest) // Bad input give errorcode 400 bad request.
-		fmt.Fprint(w, "You need to log in first.")
 		return
 	}
 
@@ -248,7 +230,6 @@ func CategoriesHandler(w http.ResponseWriter, r *http.Request) { // Default requ
 
 	w.Header().Set("Content-Type", "text/html") // The response will be an html document.
 	fmt.Print("Received a request to CategoriesHandler\n")
-	util.PrintURLAsSlice(r.URL.Path) // TODO: Remove this outprint.
 
 	switch r.Method {
 	case "GET":
@@ -256,24 +237,24 @@ func CategoriesHandler(w http.ResponseWriter, r *http.Request) { // Default requ
 		viewThreads := database.ShowThreads()
 		w.Write([]byte(`<ul>`))
 		for _, vThread := range viewThreads {
-        fmt.Println("Id: ", vThread.Id)
-				fmt.Println("Name: ", vThread.Name)
-        fmt.Println("Username: ", vThread.Username)
-        fmt.Println("")
+			fmt.Println("Id: ", vThread.Id)
+			fmt.Println("Name: ", vThread.Name)
+			fmt.Println("Username: ", vThread.Username)
+			fmt.Println("")
 
-				w.Write([]byte(`
+			w.Write([]byte(`
   <li><h3>
 	<input type="hidden" id="threadId" name="custId" value="`))
-				w.Write([]byte(strconv.Itoa(vThread.Id)))
-				w.Write([]byte(`"> `))
-				w.Write([]byte(`
+			w.Write([]byte(strconv.Itoa(vThread.Id)))
+			w.Write([]byte(`"> `))
+			w.Write([]byte(`
     <div id="textbox">
       	<p class="alignleft">`))
-				w.Write([]byte(vThread.Name))
-				w.Write([]byte(`</p>
+			w.Write([]byte(vThread.Name))
+			w.Write([]byte(`</p>
 	  	<p align=right><small><small>Username: `))
-				w.Write([]byte(vThread.Username))
-				w.Write([]byte(`</small></small></p>
+			w.Write([]byte(vThread.Username))
+			w.Write([]byte(`</small></small></p>
     </div>
   </h3></li>
 `))
