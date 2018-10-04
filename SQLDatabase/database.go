@@ -2,8 +2,8 @@ package database
 
 import (
 	"database/sql"
-	"log"
 	"fmt"
+	"log"
 	"strconv"
 
 	"github.com/go-sql-driver/mysql"
@@ -13,7 +13,8 @@ import (
 var db *sql.DB // global value for keeping database open
 
 type Category struct {
-	Name string
+	Name      string
+	Timestamp string
 }
 
 type Thread struct {
@@ -209,8 +210,85 @@ func GetThread(c Thread) {
 	}
 }
 
-func ShowThreads() []Thread {
-	rows, err := db.Query("SELECT * FROM Thread")
+func ShowCategories() []Category {
+
+	rows, err := db.Query("SELECT * FROM Category")
+
+	if err != nil {
+		log.Println("ST1 Could not get categories")
+	}
+
+	// Get column names
+	columns, err := rows.Columns()
+	if err != nil {
+		log.Println("ST2 Could not get categories")
+	}
+
+	// Make a slice for the values
+	values := make([]sql.RawBytes, len(columns))
+
+	// rows.Scan wants '[]interface{}' as an argument, so we must copy the
+	// references into such a slice
+	// See http://code.google.com/p/go-wiki/wiki/InterfaceSlice for details
+	scanArgs := make([]interface{}, len(values))
+	for i := range values {
+		scanArgs[i] = &values[i]
+	}
+
+	var cnt int
+	_ = db.QueryRow("SELECT COUNT(*) FROM Category").Scan(&cnt)
+	var slice = make([]Category, cnt)
+	var s int = 0
+
+	// Fetch rows
+	log.Println("Fetching rows")
+	for rows.Next() {
+		// get RawBytes from data
+		err = rows.Scan(scanArgs...)
+		if err != nil {
+			log.Println("ST3 Could not show categories")
+		}
+
+		// Now do something with the data.
+		// Here we just print each column as a string.
+		var value string
+		for i, col := range values {
+			// Here we can check if the value is nil (NULL value)
+			if col == nil {
+				value = "NULL"
+			} else {
+				value = string(col)
+			}
+			switch columns[i] {
+			case "name":
+				slice[s].Name = value
+				break
+			case "timestamp":
+				slice[s].Timestamp = value
+				break
+			}
+		}
+		s++
+	}
+	if err = rows.Err(); err != nil {
+		log.Println("ST4 Could not show categories")
+	}
+	return slice
+}
+
+func ShowThreads(category string) []Thread {
+
+	var rows *sql.Rows
+	var err error
+
+	if len(category) > 0 {
+
+		rows, err = db.Query("SELECT * FROM Thread WHERE name = ?", category)
+	} else {
+
+		rows, err = db.Query("SELECT * FROM Thread")
+	}
+
 	if err != nil {
 		log.Println("ST1 Could not get threads")
 	}
