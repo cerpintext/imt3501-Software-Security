@@ -83,7 +83,7 @@ func SignUpHandler(w http.ResponseWriter, r *http.Request) { // Default request 
 		fmt.Printf("User input accepted. Inserting user into db: \nusername: %s\n\n", userName) // TODO: Remove test outprint.
 		database.AddUser(user)                                                                  // Send struct to db.
 
-		fmt.Fprint(w, "All good, welcome to the team "+userName+"! :D")
+		fmt.Fprint(w, "All good, welcome to the team "+userName+"! :D<br> <a href=\"/login/\">Login with your new user</a>")
 		break
 	default:
 		w.WriteHeader(http.StatusBadRequest) // Bad input give errorcode 400 bad request.
@@ -159,7 +159,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) { // Default request h
 		config.SessionMap[username] = cookie.Value
 		fmt.Printf("Session generated:\n%s.\n \n", cookie.Value)
 
-		fmt.Fprint(w, "Logged in successfully")
+		fmt.Fprint(w, "Logged in successfully<br> <a href=\"/\">Back to front page</a>")
 		break
 	default:
 		w.WriteHeader(http.StatusBadRequest) // Bad input give errorcode 400 bad request.
@@ -188,7 +188,7 @@ func PostMessageHandler(w http.ResponseWriter, r *http.Request) { // Default req
 
 	fmt.Print("User input accepted. Inserting message into db\n")
 	database.AddMessage(message)
-	fmt.Fprint(w, "Message sent.\n")
+	fmt.Fprint(w, "Message sent.<br> <a href=\"/\">Back to front page</a>")
 
 }
 
@@ -223,7 +223,7 @@ func PostThreadHandler(w http.ResponseWriter, r *http.Request) { // Default requ
 	// 	thread.Name[0:20], message.Message[0:20]) // TODO: Remove test outprint.
 	database.AddThread(thread, message)
 
-	fmt.Fprint(w, "Message sent.\n")
+	fmt.Fprint(w, "Message sent.<br>	<a href=\"/\">Back to front page</a>")
 }
 
 func CategoriesHandler(w http.ResponseWriter, r *http.Request) { // Default request handler handles domain/ requests.
