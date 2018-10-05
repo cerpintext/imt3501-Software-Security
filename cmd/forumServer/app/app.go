@@ -228,7 +228,7 @@ func PostThreadHandler(w http.ResponseWriter, r *http.Request) { // Default requ
 	fmt.Fprint(w, "Message sent.<br>	<a href=\"/\">Back to front page</a>")
 }
 
-func CategoriesHandler(w http.ResponseWriter, r *http.Request) { // Default request handler handles domain/ requests.
+func CategoriesHandler(w http.ResponseWriter, r *http.Request) { // Generates a list of categories and sends it the user.
 
 	w.Header().Set("Content-Type", "text/html") // The response will be an html document.
 	fmt.Print("Received a request to CategoriesHandler\n")
@@ -250,4 +250,34 @@ func CategoriesHandler(w http.ResponseWriter, r *http.Request) { // Default requ
 		w.WriteHeader(http.StatusBadRequest) // Bad input give errorcode 400 bad request.
 		return
 	}
+}
+
+func LogoutHandler(w http.ResponseWriter, r *http.Request) { // Logs user out by setting their cookie to be expired so they get deleted.
+
+	w.Header().Set("Content-Type", "text/html") // The response will be an html document.
+	fmt.Print("Received a request to Logout handler\n")
+
+	if r.Method == "POST" {
+
+		cookieUsername, err := r.Cookie("username")
+		if err != nil { //The user has registered session but their cookie is expired.
+			return
+		} else {
+			delete(config.SessionMap, cookieUsername.Value) // Delete stored session id.
+		}
+
+		expire := time.Now().AddDate(0, 0, -1)
+		cookie := &http.Cookie{Name: "username", Value: "LOGGEDOUT", Path: "/", Expires: expire}
+		http.SetCookie(w, cookie)
+		cookie = &http.Cookie{Name: "session", Value: "NOSESSION", Path: "/", Expires: expire}
+		http.SetCookie(w, cookie)
+
+		fmt.Fprint(w, "Logged out.<br>	<a href=\"/\">Back to front page</a>")
+
+	} else {
+
+		w.WriteHeader(http.StatusBadRequest) // Bad input give errorcode 400 bad request.
+
+	}
+
 }
