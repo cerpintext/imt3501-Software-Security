@@ -37,6 +37,7 @@ type Message struct {
 	Timestamp     string
 	Username      string
 	ParentMessage int
+	ThreadId      int
 }
 
 func OpenDB() {
@@ -106,14 +107,15 @@ func AddUser(c User) {
 	}
 }
 
-//	Only uses fields Message, Username and ParentMessage
+//	Only uses fields Username, Email, and passwordHash
 //	How to use
-//	AddMessage(Message{anInt, "the message to be posted", \
-//		"", "username", parentMessage})
+//	AddUser(User{"userName", "email", "passwordHash" anInt, anInt})
+//	parentMessage is the message a user is replying to, threadId is the thread they're in
 func AddMessage(c Message) int {
-	stmtIns, err := db.Prepare("INSERT INTO Message (`message`, `username`, `parentmessage`) VALUES( ?, ?, ? )") // ? = placeholder
+	stmtIns, err := db.Prepare("INSERT INTO Message (`message`, `username`, `parentmessage`, `threadId`) VALUES( ?, ?, ?, ? )") // ? = placeholder
 	if err != nil {
-		panic(err.Error()) // TODO: Implement proper handlig
+		fmt.Println("Message prepare")
+		(err.Error()) // TODO: Implement proper handlig
 	}
 	defer stmtIns.Close() // Close the statement when we leave function() / the program terminates
 	// Insert tuples (message, username, parentMessage)
@@ -121,17 +123,19 @@ func AddMessage(c Message) int {
 	var res sql.Result
 	if c.ParentMessage == -1 { // No parent. ints can't be nil in golang.
 
-		res, err = stmtIns.Exec(c.Message, c.Username, nil)
+		res, err = stmtIns.Exec(c.Message, c.Username, c.ThreadId, nil)
 	} else {
 
-		res, err = stmtIns.Exec(c.Message, c.Username, c.ParentMessage)
+		res, err = stmtIns.Exec(c.Message, c.Username, c.ThreadId, c.ParentMessage)
 	}
 
 	if err != nil {
+		fmt.Println("Message exec")
 		errorHandling(err, "addMessage")
 	}
 	messageID, err := res.LastInsertId()
 	if err != nil {
+		fmt.Println("Message LastInsertId")
 		errorHandling(err, "addThread")
 	}
 	return int(messageID)
@@ -212,7 +216,7 @@ func GetThread(c Thread) []Message {
 				switch columns[i] {
 				case "id":
 					slice[s].Id, err = strconv.Atoi(value)
-					//			fmt.Println("Reading value ", slice[s].Id, " from row ", s)
+								fmt.Println("Reading value ", slice[s].Id, " from row ", s)
 					break
 				case "message":
 					slice[s].Message = value
@@ -220,6 +224,10 @@ func GetThread(c Thread) []Message {
 					break
 				case "timestamp":
 					slice[s].Timestamp = value
+					//			fmt.Println("Reading value ", value, " from row ", s)
+					break
+				case "username":
+					slice[s].Username = value
 					//			fmt.Println("Reading value ", value, " from row ", s)
 					break
 				case "threadId":
@@ -235,7 +243,6 @@ func GetThread(c Thread) []Message {
 			}
 			s++
 		}
-
 	}
 	return slice
 }
