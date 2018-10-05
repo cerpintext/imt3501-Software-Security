@@ -14,13 +14,19 @@ CREATE TABLE IF NOT EXISTS `User` (
 );
 
 CREATE TABLE IF NOT EXISTS `Thread` (
-    `id`        INT UNSIGNED    NOT NULL    AUTO_INCREMENT,
-    `name`      VARCHAR (120)   NOT NULL,
-    `username`  VARCHAR (120)   NOT NULL,
+    `id`            INT UNSIGNED    NOT NULL    AUTO_INCREMENT,
+    `name`          VARCHAR (120)   NOT NULL,
+    `username`      VARCHAR (120)   NOT NULL,
+    `categoryname`  VARCHAR (120),
+
     PRIMARY KEY (id),
     FOREIGN KEY (username) REFERENCES User(username)
         ON UPDATE CASCADE
         ON DELETE CASCADE
+    FOREIGN KEY (categoryname) REFERENCES Category(name)
+        ON UPDATE CASCADE
+        ON DELETE CASCADE
+
 );
 
 CREATE TABLE IF NOT EXISTS `Message` (

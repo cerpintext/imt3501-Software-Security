@@ -283,7 +283,7 @@ func ShowThreads(category string) []Thread {
 
 	if len(category) > 0 {
 
-		rows, err = db.Query("SELECT * FROM Thread WHERE name = ?", category)
+		rows, err = db.Query("SELECT * FROM Thread WHERE categoryname = ?", category)
 	} else {
 
 		rows, err = db.Query("SELECT * FROM Thread")
@@ -311,7 +311,7 @@ func ShowThreads(category string) []Thread {
 	}
 
 	var cnt int
-	_ = db.QueryRow("SELECT COUNT(*) FROM Thread").Scan(&cnt)
+	_ = db.QueryRow("SELECT COUNT(*) FROM Thread WHERE categoryname = ?", category).Scan(&cnt)
 	var slice = make([]Thread, cnt)
 	var s int = 0
 

@@ -148,6 +148,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) { // Default request h
 		}
 
 		fmt.Printf("User exists. Password match. Attempting to store session id for user.")
+
 		expire := time.Now().AddDate(0, 0, config.SESSION_EXPIRE_DAYS)
 		cookie, err := r.Cookie("session")
 		if err != nil { //TODO: Verify that it is okay to not check error
@@ -234,6 +235,7 @@ func CategoriesHandler(w http.ResponseWriter, r *http.Request) { // Default requ
 	util.PrintURLAsSlice(r.URL.Path)
 	parts := strings.Split(r.URL.Path, "/")
 	category := parts[2]
+	fmt.Println("Displaying " + category)
 
 	switch r.Method {
 	case "GET":
