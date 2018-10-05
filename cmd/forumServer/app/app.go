@@ -177,11 +177,10 @@ func MessageHandler(w http.ResponseWriter, r *http.Request) { // Default request
 	w.Header().Set("Content-Type", "text/html") // The response will be an html document.
 	fmt.Print("Received a request to PostMessageHandler\n")
 
-	if r.Method != "POST" {
-
-	}
-
 	switch r.Method {
+	case "GET":
+		util.FetchHTML("message.html")
+		break
 	case "POST":
 		message, err := util.ValidateMessage(r)
 		if err != nil {
@@ -195,7 +194,7 @@ func MessageHandler(w http.ResponseWriter, r *http.Request) { // Default request
 		fmt.Fprint(w, "Message sent.<br> <a href=\"/\">Back to front page</a>")
 		break
 
-	case "DELEETE":
+	case "DELETE":
 		break
 
 	default:
@@ -231,7 +230,7 @@ func ThreadHandler(w http.ResponseWriter, r *http.Request) { // Default request 
 			database.OpenDB()
 			user, _ := database.GetUser(username)
 			if user.Role > 0 {
-				moderator = true // TODO: Not working as it should yet work in progess #23.
+				moderator = true
 			}
 		}
 

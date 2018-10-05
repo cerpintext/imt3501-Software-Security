@@ -112,7 +112,7 @@ func AddUser(c User) {
 //	AddMessage(Message{anInt, "the message to be posted", \
 //		"", "username", parentMessage})
 func AddMessage(c Message) int {
-	stmtIns, err := db.Prepare("INSERT INTO Message (`message`, `username`, `parentmessage`) VALUES( ?, ?, ? )") // ? = placeholder
+	stmtIns, err := db.Prepare("INSERT INTO Message (`message`, `username`, `parentmessage`, `threadId`) VALUES( ?, ?, ?, ? )") // ? = placeholder
 	if err != nil {
 		panic(err.Error()) // TODO: Implement proper handlig
 	}
@@ -122,10 +122,13 @@ func AddMessage(c Message) int {
 	var res sql.Result
 	if c.ParentMessage == -1 { // No parent. ints can't be nil in golang.
 
-		res, err = stmtIns.Exec(c.Message, c.Username, nil)
-	} else {
+		res, err = stmtIns.Exec(c.Message, c.Username, nil, c.ThreadId)
+	} else if c.ThreadId == -1 {
 
-		res, err = stmtIns.Exec(c.Message, c.Username, c.ParentMessage)
+		res, err = stmtIns.Exec(c.Message, c.Username, c.ParentMessage, nil)
+	} else {
+		res, err = stmtIns.Exec(c.Message, c.Username, c.ParentMessage, c.ThreadId)
+
 	}
 
 	if err != nil {
@@ -188,6 +191,97 @@ func GetThread(c Thread) []Message {
 
 		var cnt int
 		_ = db.QueryRow("SELECT COUNT(*) FROM Message WHERE threadId = ?", c.Id).Scan(&cnt)
+		slice = make([]Message, cnt)
+		var s int = 0
+
+		// Fetch rows
+		log.Println("GT4 Fetching rows ")
+		for rows.Next() {
+			// get RawBytes from data
+			err = rows.Scan(scanArgs...)
+			if err != nil {
+				log.Println("GT5 Could not show messages")
+			}
+
+			// Now do something with the data.
+			// Here we just print each column as a string.
+			var value string
+			for i, col := range values {
+				// Here we can check if the value is nil (NULL value)
+				if col == nil {
+					value = "NULL"
+				} else {
+					value = string(col)
+				}
+				switch columns[i] {
+				case "id":
+					slice[s].Id, err = strconv.Atoi(value)
+					fmt.Println("Reading value ", slice[s].Id, " from row ", s)
+					break
+				case "message":
+					slice[s].Message = value
+					//                      fmt.Println("Reading value ", value, " from row ", s)
+					break
+				case "timestamp":
+					slice[s].Timestamp = value
+					//                      fmt.Println("Reading value ", value, " from row ", s)
+					break
+				case "username":
+					slice[s].Username = value
+					//                      fmt.Println("Reading value ", value, " from row ", s)
+					break
+				case "parentmessage":
+					slice[s].ParentMessage, err = strconv.Atoi(value)
+					//                      fmt.Println("Reading value ", value, " from row ", s)
+					break
+				case "threadId":
+					slice[s].ThreadId, err = strconv.Atoi(value)
+					//                      fmt.Println("Reading value ", value, " from row ", s)
+					break
+
+				}
+			}
+			s++
+		}
+
+	}
+	fmt.Printf("GetThread(): Returning message slice with len: %d\n", +len(slice))
+	return slice
+}
+
+func GetReplies(messageId int) []Message {
+	var slice []Message
+	stmtIns, err := db.Prepare("SELECT * FROM Message WHERE parentmessage = ?") // ? = placeholder
+	if err != nil {
+		log.Println("GT1 Could not get threads")
+		panic(err.Error()) // TODO: Implement proper handlig
+	}
+	defer stmtIns.Close()                 // Close the statement when we leave function() / the program terminates
+	rows, err := stmtIns.Query(messageId) // Qurey the prepared statement
+	if err != nil {
+		log.Println("GT2 Could not get threads")
+		panic(err.Error())
+	} else {
+		columns, err := rows.Columns()
+		if err != nil {
+			log.Println("GT3 Could not get threads")
+		}
+
+		// Make a slice for the values
+		values := make([]sql.RawBytes, len(columns))
+
+		fmt.Println(values)
+
+		// rows.Scan wants '[]interface{}' as an argument, so we must copy the
+		// references into such a slice
+		// See http://code.google.com/p/go-wiki/wiki/InterfaceSlice for details
+		scanArgs := make([]interface{}, len(values))
+		for i := range values {
+			scanArgs[i] = &values[i]
+		}
+
+		var cnt int
+		_ = db.QueryRow("SELECT COUNT(*) FROM Message WHERE parentmessage = ?", messageId).Scan(&cnt)
 		slice = make([]Message, cnt)
 		var s int = 0
 
