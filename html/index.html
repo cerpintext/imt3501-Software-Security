@@ -6,14 +6,14 @@
 <body>
 	<h1>Forum Font page</h1>
 
-    <a href="/signup/">SignUp</a>
-    <br>
-	<a href="/login/">Login</a>
+	<form action="/signup/" method="get"><input type="submit" value ="Signup"></form>
+	<form action="/login/" method="get"><input type="submit" value ="Login"></form>
+	<form action="/logout/" method="post"><input type="submit" value ="Logout"></form>
 	<br>
 	<br>
 	<form action="/postmessage/" method="post">
 			Post a public message outside any category or thread: <input type="text" name="message"><br>
-			<input type="submit" value ="Send public Message"><form>
+			<input type="submit" value ="Send public Message"></form>
 			<input type="hidden" name="parentmessage" value="-1"><br>
 	<br>
 	<br>
