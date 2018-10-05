@@ -154,7 +154,8 @@ func GetUser(username string) (User, error) {
 //	Only uses fields Id
 //	How to use
 //	GetThread(Thread{threadId, "", ""})
-func GetThread(c Thread) {
+func GetThread(c Thread) []Message {
+	var slice []Message
 	stmtIns, err := db.Prepare("SELECT * FROM Message WHERE threadId = ?") // ? = placeholder
 	if err != nil {
 		log.Println("GT1 Could not get threads")
@@ -174,6 +175,8 @@ func GetThread(c Thread) {
 		// Make a slice for the values
 		values := make([]sql.RawBytes, len(columns))
 
+		fmt.Println(values)
+
 		// rows.Scan wants '[]interface{}' as an argument, so we must copy the
 		// references into such a slice
 		// See http://code.google.com/p/go-wiki/wiki/InterfaceSlice for details
@@ -182,12 +185,18 @@ func GetThread(c Thread) {
 			scanArgs[i] = &values[i]
 		}
 
+		var cnt int
+		_ = db.QueryRow("SELECT COUNT(*) FROM Message").Scan(&cnt)
+		var slice = make([]Message, cnt)
+		var s int = 0
+
 		// Fetch rows
+		log.Println("GT4 Fetching rows ")
 		for rows.Next() {
 			// get RawBytes from data
 			err = rows.Scan(scanArgs...)
 			if err != nil {
-				log.Println("GT4 Could not show threads")
+				log.Println("GT5 Could not show messages")
 			}
 
 			// Now do something with the data.
@@ -200,14 +209,35 @@ func GetThread(c Thread) {
 				} else {
 					value = string(col)
 				}
-				fmt.Println(columns[i], ": ", value)
+				switch columns[i] {
+				case "id":
+					slice[s].Id, err = strconv.Atoi(value)
+					//			fmt.Println("Reading value ", slice[s].Id, " from row ", s)
+					break
+				case "message":
+					slice[s].Message = value
+					//			fmt.Println("Reading value ", value, " from row ", s)
+					break
+				case "timestamp":
+					slice[s].Timestamp = value
+					//			fmt.Println("Reading value ", value, " from row ", s)
+					break
+				case "threadId":
+					slice[s].ThreadId, err = strconv.Atoi(value)
+					//			fmt.Println("Reading value ", value, " from row ", s)
+					break
+				case "parentmessage":
+					slice[s].ParentMessage, err = strconv.Atoi(value)
+					//			fmt.Println("Reading value ", value, " from row ", s)
+					break
+
+				}
 			}
-			fmt.Println("-----------------------------------")
+			s++
 		}
-		if err = rows.Err(); err != nil {
-			log.Println("GT5 Could not show threads")
-		}
+
 	}
+	return slice
 }
 
 func ShowCategories() []Category {
