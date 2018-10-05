@@ -37,6 +37,7 @@ type Message struct {
 	Timestamp     string
 	Username      string
 	ParentMessage int
+	ThreadId      int
 }
 
 func OpenDB() {
@@ -151,9 +152,9 @@ func GetUser(username string) (User, error) {
 
 }
 
-//	Only uses fields Id
-//	How to use
-//	GetThread(Thread{threadId, "", ""})
+//      Only uses fields Id
+//      How to use
+//      GetThread(Thread{threadId, "", ""})
 func GetThread(c Thread) []Message {
 	var slice []Message
 	stmtIns, err := db.Prepare("SELECT * FROM Message WHERE threadId = ?") // ? = placeholder
@@ -186,8 +187,8 @@ func GetThread(c Thread) []Message {
 		}
 
 		var cnt int
-		_ = db.QueryRow("SELECT COUNT(*) FROM Message").Scan(&cnt)
-		var slice = make([]Message, cnt)
+		_ = db.QueryRow("SELECT COUNT(*) FROM Message WHERE threadId = ?", c.Id).Scan(&cnt)
+		slice = make([]Message, cnt)
 		var s int = 0
 
 		// Fetch rows
@@ -212,23 +213,27 @@ func GetThread(c Thread) []Message {
 				switch columns[i] {
 				case "id":
 					slice[s].Id, err = strconv.Atoi(value)
-					//			fmt.Println("Reading value ", slice[s].Id, " from row ", s)
+					fmt.Println("Reading value ", slice[s].Id, " from row ", s)
 					break
 				case "message":
 					slice[s].Message = value
-					//			fmt.Println("Reading value ", value, " from row ", s)
+					//                      fmt.Println("Reading value ", value, " from row ", s)
 					break
 				case "timestamp":
 					slice[s].Timestamp = value
-					//			fmt.Println("Reading value ", value, " from row ", s)
+					//                      fmt.Println("Reading value ", value, " from row ", s)
 					break
-				case "threadId":
-					slice[s].ThreadId, err = strconv.Atoi(value)
-					//			fmt.Println("Reading value ", value, " from row ", s)
+				case "username":
+					slice[s].Username = value
+					//                      fmt.Println("Reading value ", value, " from row ", s)
 					break
 				case "parentmessage":
 					slice[s].ParentMessage, err = strconv.Atoi(value)
-					//			fmt.Println("Reading value ", value, " from row ", s)
+					//                      fmt.Println("Reading value ", value, " from row ", s)
+					break
+				case "threadId":
+					slice[s].ThreadId, err = strconv.Atoi(value)
+					//                      fmt.Println("Reading value ", value, " from row ", s)
 					break
 
 				}
@@ -237,6 +242,7 @@ func GetThread(c Thread) []Message {
 		}
 
 	}
+	fmt.Printf("GetThread(): Returning message slice with len: %d\n", +len(slice))
 	return slice
 }
 
