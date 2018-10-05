@@ -20,9 +20,9 @@ func main() {
 	http.HandleFunc("/signup/", app.SignUpHandler)
 	http.HandleFunc("/login/", app.LoginHandler)
 	http.HandleFunc("/logout/", app.LogoutHandler)
-	http.HandleFunc("/postmessage/", app.PostMessageHandler)
-	http.HandleFunc("/postthread/", app.PostThreadHandler)
-	http.HandleFunc("/categories/", app.CategoriesHandler)
+	http.HandleFunc("/message/", app.MessageHandler)
+	http.HandleFunc("/thread/", app.ThreadHandler)
+	http.HandleFunc("/category/", app.CategoryHandler)
 
 	http.ListenAndServe(fmt.Sprintf("%s:%d", config.Config.Address, config.Config.Port), nil) // Start serving incomming requests. Will continue to serve forever.
 }

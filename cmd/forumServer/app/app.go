@@ -3,6 +3,7 @@ package app
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -170,76 +171,114 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) { // Default request h
 
 }
 
-// PostMessageHandler returns html page if GET, logs in user if POST.
-func PostMessageHandler(w http.ResponseWriter, r *http.Request) { // Default request handler handles domain/ requests.
+// MessageHandler returns html page if GET, logs in user if POST.
+func MessageHandler(w http.ResponseWriter, r *http.Request) { // Default request handler handles domain/ requests.
 
 	w.Header().Set("Content-Type", "text/html") // The response will be an html document.
 	fmt.Print("Received a request to PostMessageHandler\n")
 
 	if r.Method != "POST" {
+
+	}
+
+	switch r.Method {
+	case "POST":
+		message, err := util.ValidateMessage(r)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest) // Bad input give errorcode 400 bad request.
+			fmt.Fprint(w, err)
+			return
+		}
+
+		fmt.Print("User input accepted. Inserting message into db\n")
+		database.AddMessage(message)
+		fmt.Fprint(w, "Message sent.<br> <a href=\"/\">Back to front page</a>")
+		break
+
+	case "DELEETE":
+		break
+
+	default:
 		w.WriteHeader(http.StatusBadRequest) // Bad input give errorcode 400 bad request.
 		return
 	}
-
-	message, err := util.ValidateMessage(r)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest) // Bad input give errorcode 400 bad request.
-		fmt.Fprint(w, err)
-		return
-	}
-
-	fmt.Print("User input accepted. Inserting message into db\n")
-	database.AddMessage(message)
-	fmt.Fprint(w, "Message sent.<br> <a href=\"/\">Back to front page</a>")
-
 }
 
-// PostMessageHandler returns html page if GET, logs in user if POST.
-func PostThreadHandler(w http.ResponseWriter, r *http.Request) { // Default request handler handles domain/ requests.
+// MessageHandler returns html page if GET, logs in user if POST.
+func ThreadHandler(w http.ResponseWriter, r *http.Request) { // Default request handler handles domain/ requests.
 
 	w.Header().Set("Content-Type", "text/html") // The response will be an html document.
-	fmt.Print("Received a request to PostThreadHandler\n")
+	fmt.Print("Received a request to ThreadHandler\n")
 
-	if r.Method != "POST" {
+	switch r.Method {
+	case "GET":
+		// Parse input from URL.
+		parts := strings.Split(r.URL.Path, "/")
+		threadId, err := strconv.Atoi(parts[2])
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest) // Bad input give errorcode 400 bad request.
+			fmt.Fprint(w, "No thread with that ID.")
+			return
+		}
+
+		moderator := false
+		username := ""
+
+		if util.IsLoggedIn(r) {
+			cookieUsername, _ := r.Cookie("username")
+			username = cookieUsername.Value
+
+			database.OpenDB()
+			user, _ := database.GetUser(username)
+			if user.Role > 0 {
+				moderator = true // TODO: Not working as it should yet work in progess #23.
+			}
+		}
+
+		fmt.Println("Displaying thread: " + fmt.Sprint(threadId))
+		fmt.Fprint(w, util.FetchHTML("thread.html"))
+		fmt.Fprint(w, htmlGeneration.GenerateMessagesList(threadId, username, moderator))
+	case "POST":
+
+		message, err := util.ValidateMessage(r)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest) // Bad input give errorcode 400 bad request.
+			fmt.Fprint(w, err)
+			return
+		}
+
+		var thread database.Thread
+		thread.Name = r.FormValue("threadname")
+		thread.Username = message.Username
+
+		if !util.BasicValidate(thread.Name) {
+			w.WriteHeader(http.StatusBadRequest) // Bad input give errorcode 400 bad request.
+			return
+		}
+		database.AddThread(thread, message)
+
+		fmt.Fprint(w, "Message sent.<br>	<a href=\"/\">Back to front page</a>")
+		break
+
+	default:
 		w.WriteHeader(http.StatusBadRequest) // Bad input give errorcode 400 bad request.
 		return
 	}
 
-	message, err := util.ValidateMessage(r)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest) // Bad input give errorcode 400 bad request.
-		fmt.Fprint(w, err)
-		return
-	}
-
-	var thread database.Thread
-	thread.Name = r.FormValue("threadname")
-	thread.Username = message.Username
-
-	if !util.BasicValidate(thread.Name) {
-		w.WriteHeader(http.StatusBadRequest) // Bad input give errorcode 400 bad request.
-		return
-	}
-
-	// fmt.Printf("User input accepted. Inserting thread into db:\nthread name(first 20 chars): %s\nmessage(first 20 chars): \"%s\"\n\n",
-	// 	thread.Name[0:20], message.Message[0:20]) // TODO: Remove test outprint.
-	database.AddThread(thread, message)
-
-	fmt.Fprint(w, "Message sent.<br>	<a href=\"/\">Back to front page</a>")
 }
 
-func CategoriesHandler(w http.ResponseWriter, r *http.Request) { // Generates a list of categories and sends it the user.
+func CategoryHandler(w http.ResponseWriter, r *http.Request) { // Generates a list of categories and sends it the user.
 
 	w.Header().Set("Content-Type", "text/html") // The response will be an html document.
 	fmt.Print("Received a request to CategoriesHandler\n")
 	util.PrintURLAsSlice(r.URL.Path)
 	parts := strings.Split(r.URL.Path, "/")
 	category := parts[2]
-	fmt.Println("Displaying " + category)
+	fmt.Println("Displaying category: " + category)
 
 	switch r.Method {
 	case "GET":
-		fmt.Fprint(w, util.FetchHTML("categories.html"))
+		fmt.Fprint(w, util.FetchHTML("category.html"))
 		fmt.Fprint(w, htmlGeneration.GenerateTreadList(category))
 		break
 
