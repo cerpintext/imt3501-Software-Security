@@ -249,12 +249,13 @@ func ThreadHandler(w http.ResponseWriter, r *http.Request) { // Default request 
 		var thread database.Thread
 		thread.Name = r.FormValue("threadname")
 		thread.Username = message.Username
+		categoryName := r.FormValue("categoryname")
 
-		if !util.BasicValidate(thread.Name) {
+		if !util.BasicValidate(thread.Name) || !util.BasicValidate(categoryName) {
 			w.WriteHeader(http.StatusBadRequest) // Bad input give errorcode 400 bad request.
 			return
 		}
-		database.AddThread(thread, message)
+		database.AddThread(thread, message, database.Category{categoryName, ""})
 
 		fmt.Fprint(w, "Message sent.<br>	<a href=\"/\">Back to front page</a>")
 		break

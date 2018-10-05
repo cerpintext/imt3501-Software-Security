@@ -64,13 +64,13 @@ func OpenDB() {
 //	Only uses fields Name and Username
 //	How to use
 //	AddThread(Thread{anInt, "name", "existingUsername"})
-func AddThread(c Thread, m Message) {
-	stmtIns, err := db.Prepare("INSERT INTO Thread (`name`, `username`) VALUES( ?, ? )") // ? = placeholder
+func AddThread(c Thread, m Message, g Category) {
+	stmtIns, err := db.Prepare("INSERT INTO Thread (`name`, `username`, `categoryname`) VALUES( ?, ?, ? )") // ? = placeholder
 	if err != nil {
 		panic(err.Error()) // TODO: Implement proper handlig
 	}
-	defer stmtIns.Close()                        // Close the statement when we leave function() / the program terminates
-	res, err := stmtIns.Exec(c.Name, c.Username) // Insert tuples (name, userName)
+	defer stmtIns.Close()                                // Close the statement when we leave function() / the program terminates
+	res, err := stmtIns.Exec(c.Name, c.Username, g.Name) // Insert tuples (name, userName)
 	if err != nil {
 		errorHandling(err, "addThread")
 	}
@@ -79,6 +79,7 @@ func AddThread(c Thread, m Message) {
 	if err != nil {
 		errorHandling(err, "addThread")
 	}
+	m.ThreadId = int(threadID)
 	messageID := AddMessage(m)
 
 	stmtIns, err = db.Prepare("INSERT INTO ThreadMessages (`threadId`, `messageId`) VALUES( ?, ? )") // ? = placeholder

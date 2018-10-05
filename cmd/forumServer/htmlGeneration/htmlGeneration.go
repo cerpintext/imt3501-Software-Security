@@ -30,6 +30,8 @@ func GenerateTreadList(category string) string {
 
 	var htmlDoc string
 
+	htmlDoc += "<form action=\"/thread/\" method=\"post\">Thread Name <input type=\"text\" name=\"threadname\"> Thread Description <input type=\"text\" name=\"message\"><input type=\"hidden\" name=\"parentmessage\" value =\"-1\"><input type=\"hidden\" name=\"threadid\" value =\"-1\"><input type=\"hidden\" name=\"categoryname\" value =\"" + category + "\"><input type=\"submit\" value =\"Create thread\"></input></form>\n"
+
 	database.OpenDB()
 	viewThreads := database.ShowThreads(category)
 	htmlDoc += "<ul>"
