@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-sql-driver/mysql"
 	"github.com/krisshol/imt3501-Software-Security/cmd/forumServer/config"
+	"github.com/krisshol/imt3501-Software-Security/cmd/forumServer/crypt"
 )
 
 var db *sql.DB // global value for keeping database open
@@ -29,6 +30,7 @@ type User struct {
 	PasswordHash string
 	Reputation   int
 	Role         int
+	Salt				 string
 }
 
 type Message struct {
@@ -94,15 +96,16 @@ func AddThread(c Thread, m Message, g Category) {
 
 //	Only uses fields Username, Email, and passwordHash
 //	How to use
-//	AddUser(User{"userName", "email", "passwordHash" anInt, anInt})
+//	AddUser(User{"userName", "email", "passwordHash", anInt, anInt, ""})
 func AddUser(c User) {
-	stmtIns, err := db.Prepare("INSERT INTO User (`username`, `email`, `passwordHash`) VALUES( ?, ?, ? )") // ? = placeholder
+	hash, salt := crypt.Hash(crypt.HashStruct{c.PasswordHash, c.Salt})
+	stmtIns, err := db.Prepare("INSERT INTO User (`username`, `email`,`passwordHash`, `Salt`) VALUES( ?, ?, ?, ? )") // ? = placeholder
 	if err != nil {
 		panic(err.Error()) // TODO: Implement proper handlig
 	}
 	defer stmtIns.Close() // Close the statement when we leave function() / the program terminates
 	// Insert tuples (username, email, passwordHash, reputation, role)
-	_, err = stmtIns.Exec(c.Username, c.Email, c.PasswordHash)
+	_, err = stmtIns.Exec(c.Username, c.Email, hash, salt)
 	if err != nil {
 		errorHandling(err, "addUser")
 	}
@@ -150,7 +153,7 @@ func AddMessage(c Message) int {
 func GetUser(username string) (User, error) {
 
 	var user User // QueryRow is using prepared statements. http://go-database-sql.org/retrieving.html
-	err := db.QueryRow("SELECT username, passwordhash, role FROM User WHERE username = ?", username).Scan(&user.Username, &user.PasswordHash, &user.Role)
+	err := db.QueryRow("SELECT username, passwordhas, role, Salt FROM User WHERE username = ?", username).Scan(&user.Username, &user.PasswordHash, &user.Role, &user.Salt)
 	if err != nil {
 		return User{}, err
 	}
@@ -537,21 +540,30 @@ func DeleteThread(c Thread) {
 //	Only uses field Username
 //	How to use
 //	DeleteMessage(Message{anInt, "", "", "", anInt})
-func DeleteMessage(c Message) {
-	stmtIns, err := db.Prepare("DELETE FROM Message WHERE id = ?") // ? = placeholder
-	if err != nil {
-		panic(err.Error()) // TODO: Implement proper handlig
+func DeleteMessage(c Message) error {
+	var user User
+	user, err := GetUser(c.Username)
+	if err == nil {
+		if user.Role >= 1 || user.Username == c.Username {
+			stmtIns, err := db.Prepare("DELETE FROM Message WHERE id = ?") // ? = placeholder
+			if err != nil {
+				panic(err.Error()) // TODO: Implement proper handlig
+			}
+			defer stmtIns.Close() // Close the statement when we leave function() / the program terminates
+			// Insert tuples (username, email, passwordHash, reputation, role)
+			Result, err := stmtIns.Exec(c.Id)
+			if err != nil {
+				errorHandling(err, "delMessage")
+			}
+			rows, err := Result.RowsAffected()
+			if rows == 0 {
+				fmt.Println("Hmm, something strange happend; \n\tMessage not found -> message not deleted")
+			}
+		}
+	} else {
+		return err
 	}
-	defer stmtIns.Close() // Close the statement when we leave function() / the program terminates
-	// Insert tuples (username, email, passwordHash, reputation, role)
-	Result, err := stmtIns.Exec(c.Id)
-	if err != nil {
-		errorHandling(err, "delMessage")
-	}
-	rows, err := Result.RowsAffected()
-	if rows == 0 {
-		fmt.Println("Hmm, something strange happend; \n\tMessage not found -> message not deleted")
-	}
+	return err
 }
 
 /*************** Help functions ***************/
@@ -562,15 +574,15 @@ func errorHandling(err error, function string) {
 	if mysqlErr.Number == 1062 && function == "addUser" { // Duplicate username
 		log.Println("Username already exists")
 	} else if mysqlErr.Number == 1062 && function == "addThread" { // Duplicate thread
-		log.Println("Something strange happend a thread with this ID already exists")
+		log.Println("A thread with this ID already exists")
 	} else if mysqlErr.Number == 1062 && function == "addMessage" { // Duplicate message
-		log.Println("Something strange happend a message with this ID already exists")
+		log.Println("A message with this ID already exists")
 	} else if mysqlErr.Number == 1452 && function == "addMessage" && string(runes[135:143]) == "username" { // Non existent user
-		log.Println("Hmm, that's not supposed to happen. User not found when posting message")
+		log.Println("User not found when posting message")
 	} else if mysqlErr.Number == 1452 && function == "addMessage" && string(runes[135:148]) == "parentmessage" { // Non existent parent message
-		log.Println("Hmm, that's not supposed to happen. Parent message message not found") // output might need to be changed
+		log.Println("Parent message message not found") // output might need to be changed
 	} else if mysqlErr.Number == 1452 && function == "addThread" && string(runes[133:141]) == "username" { // Non existent parent message
-		log.Println("Hmm, that's not supposed to happen. Username does not exist when posting a new thread") // output might need to be changed
+		log.Println("Username does not exist when posting a new thread") // output might need to be changed
 	} else if mysqlErr.Number == 1054 { // Non existent parent message
 		log.Println(mysqlErr.Message) // output might need to be changed
 	} else { // Unkown error
