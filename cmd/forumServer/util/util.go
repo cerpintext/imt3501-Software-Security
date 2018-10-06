@@ -77,29 +77,46 @@ func ValidateMessage(r *http.Request) (database.Message, error) {
 
 	r.ParseForm()
 
-	message.Message = r.FormValue("message")
+	if r.FormValue("message") != "" {
+		fmt.Printf("Parsing message")
+		message.Message = r.FormValue("message")
 
-	parent, err := strconv.Atoi(r.FormValue("parentmessage"))
-	if err != nil {
-		fmt.Printf("Validate Message: Failed to parse message.parentmessage, got: %s\n\n\n", r.FormValue("parentmessage"))
-		return database.Message{}, errors.New("Message was invalid")
+		if !BasicValidate(message.Message, -1, config.MAX_MESSAGE_LENGTH) ||
+			message.ParentMessage < -1 || message.ThreadId < -1 {
+
+			fmt.Print("Validate Message(): Message rejected.\n\n")
+			return database.Message{}, errors.New("Message was invalid")
+		}
 	}
-	message.ParentMessage = parent
-	fmt.Printf("Validate Message(): parentMessage: %d\n", parent)
-
-	threadId, err := strconv.Atoi(r.FormValue("threadid"))
-	if err != nil {
-		fmt.Printf("Validate Message: Failed to parse message.threadId, got: %s\n\n\n", r.FormValue("threadid"))
-		return database.Message{}, errors.New("Message was invalid")
+	if r.FormValue("threadid") != "" {
+		fmt.Printf("Parsing threadid")
+		threadId, err := strconv.Atoi(r.FormValue("threadid"))
+		if err != nil {
+			fmt.Printf("Validate Message: Failed to parse message.threadId, got: %s\n\n\n", r.FormValue("threadid"))
+			return database.Message{}, errors.New("Message was invalid")
+		}
+		message.ThreadId = threadId
+		fmt.Printf("Validate Message(): threadId: %d\n", threadId)
 	}
-	message.ThreadId = threadId
-	fmt.Printf("Validate Message(): threadId: %d\n", threadId)
-
-	if !BasicValidate(message.Message, -1, config.MAX_MESSAGE_LENGTH) ||
-		message.ParentMessage < -1 || message.ThreadId < -1 {
-
-		fmt.Print("Validate Message(): Message rejected.\n\n")
-		return database.Message{}, errors.New("Message was invalid")
+	if r.FormValue("parentmessage") != "" {
+		fmt.Printf("Parsing parentmessage")
+		parent, err := strconv.Atoi(r.FormValue("parentmessage"))
+		if err != nil {
+			fmt.Printf("Validate Message: Failed to parse message.parentmessage, got: %s\n\n\n", r.FormValue("parentmessage"))
+			return database.Message{}, errors.New("Message was invalid")
+		}
+		message.ParentMessage = parent
+		fmt.Printf("Validate Message(): parentMessage: %d\n", parent)
+	}
+	if r.FormValue("messageid") != "" {
+		fmt.Printf("Parsing messageid")
+		messageId, err := strconv.Atoi(r.FormValue("messageid"))
+		if err != nil {
+			fmt.Printf("Validate Message: Failed to parse message.Id, got: %s\n\n\n", r.FormValue("messageId"))
+			return database.Message{}, errors.New("Message was invalid")
+		}
+		message.Id = messageId
+		fmt.Printf("Validate Message(): messageId: %d\n", messageId)
 	}
 
 	return message, nil

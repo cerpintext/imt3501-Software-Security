@@ -21,6 +21,7 @@ func main() {
 	http.HandleFunc("/login/", app.LoginHandler)
 	http.HandleFunc("/logout/", app.LogoutHandler)
 	http.HandleFunc("/message/", app.MessageHandler)
+	http.HandleFunc("/delete/", app.DeleteMessageHandler)
 	http.HandleFunc("/thread/", app.ThreadHandler)
 	http.HandleFunc("/category/", app.CategoryHandler)
 
