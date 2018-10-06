@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>New message</title>
+</head>
+<body>
+    <h3>Write a new message.</h3>
+    <form action="/message/" method="post">
+		Message:	 <input type="text" name="message"><br>
+		<input type="hidden" name="username" value="everyone"><br>
+		<input type="hidden" name="parentmessage" value="-1"><br>
+    	<input type="submit" value ="Submit">
+	</form>
+</body>
+</html>

@@ -85,11 +85,18 @@ func ValidateMessage(r *http.Request) (database.Message, error) {
 		return database.Message{}, errors.New("Message was invalid")
 	}
 	message.ParentMessage = parent
+	fmt.Printf("Validate Message(): parentMessage: %d\n", parent)
 
-	fmt.Printf("Validate Message(): parentMessage: %d", parent)
+	threadId, err := strconv.Atoi(r.FormValue("threadid"))
+	if err != nil {
+		fmt.Printf("Validate Message: Failed to parse message.threadId, got: %s\n\n\n", r.FormValue("threadid"))
+		return database.Message{}, errors.New("Message was invalid")
+	}
+	message.ThreadId = threadId
+	fmt.Printf("Validate Message(): threadId: %d\n", threadId)
 
 	if !BasicValidate(message.Message, -1, config.MAX_MESSAGE_LENGTH) ||
-		message.ParentMessage < -1 {
+		message.ParentMessage < -1 || message.ThreadId < -1 {
 
 		fmt.Print("Validate Message(): Message rejected.\n\n")
 		return database.Message{}, errors.New("Message was invalid")
