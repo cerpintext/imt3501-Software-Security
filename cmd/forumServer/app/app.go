@@ -177,6 +177,9 @@ func MessageHandler(w http.ResponseWriter, r *http.Request) { // Default request
 	fmt.Print("Received a request to MessageHandler\n")
 
 	switch r.Method {
+	case "GET":
+		util.FetchHTML("message.html")
+		break
 	case "POST":
 		message, err := util.ValidateMessage(r)
 		if err != nil {
@@ -246,7 +249,7 @@ func ThreadHandler(w http.ResponseWriter, r *http.Request) { // Default request 
 
 			user, _ := database.GetUser(username)
 			if user.Role > 0 {
-				moderator = true // TODO: Not working as it should yet work in progess #23.
+				moderator = true
 			}
 		}
 
@@ -265,12 +268,13 @@ func ThreadHandler(w http.ResponseWriter, r *http.Request) { // Default request 
 		var thread database.Thread
 		thread.Name = r.FormValue("threadname")
 		thread.Username = message.Username
+		categoryName := r.FormValue("categoryname")
 
-		if !util.BasicValidate(thread.Name) {
+		if !util.BasicValidate(thread.Name) || !util.BasicValidate(categoryName) {
 			w.WriteHeader(http.StatusBadRequest) // Bad input give errorcode 400 bad request.
 			return
 		}
-		database.AddThread(thread, message)
+		database.AddThread(thread, message, database.Category{categoryName, ""})
 
 		fmt.Fprint(w, "Message sent.<br>	<a href=\"/\">Back to front page</a>")
 		break

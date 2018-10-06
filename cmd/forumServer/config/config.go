@@ -15,6 +15,7 @@ const MIN_PASSWORD_LENGTH = 8   // Minimum length of passwords.
 const MAX_EMAIL_LENGTH = 80     // Maximum length of emails.
 const MAX_MESSAGE_LENGTH = 2000 // Maximum length of messages.
 const SESSION_EXPIRE_DAYS = 1   // How many days have to pass before a cookie expires.
+const COMMENT_INTENT = 40       // The amount of pixles comments are indented with.
 
 type Configuration struct {
 	Port             int    // The port the server will listen on.

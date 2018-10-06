@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	database "github.com/krisshol/imt3501-Software-Security/SQLDatabase"
+	"github.com/krisshol/imt3501-Software-Security/cmd/forumServer/config"
 )
 
 func GenerateCategoryList() string {
@@ -54,14 +55,14 @@ func GenerateMessagesList(threadId int, username string, moderator bool) string 
 
 	viewMessages := database.GetThread(database.Thread{threadId, "", ""})
 
-	htmlDoc += "<ul>"
-	fmt.Printf("GenerateMessagesList(): Messeage count in thread(%d): %d\n", threadId, len(viewMessages))
+	htmlDoc += "<ul>\n"
+	fmt.Printf("GenerateMessagesList(): Messeage count in thread(%d): %d\n\tMod:%t\n", threadId, len(viewMessages), moderator)
 
 	for _, vMessage := range viewMessages {
 		fmt.Printf("MessageID: %d \tMessageText:%s \n", vMessage.Id, vMessage.Message) // TODO: Remove bad use of printf.
 
-		htmlDoc += "<b>" + vMessage.Username + "</b>"
-		htmlDoc += "<p>" + vMessage.Message + "</p>"
+		htmlDoc += "<b>" + vMessage.Username + "</b>\n"
+		htmlDoc += "<p>" + vMessage.Message + "</p>\n"
 
 		viewComments := database.GetReplies(vMessage.Id)
 		for _, vComment := range viewComments {
@@ -74,13 +75,19 @@ func GenerateMessagesList(threadId int, username string, moderator bool) string 
 			}
 		}
 
+		if len(username) > 0 {
+			htmlDoc += "<form action=\"/message/\" method=\"post\"><input type=\"text\" name=\"message\"><input type=\"hidden\" name=\"parentmessage\" value =\"" + fmt.Sprint(vMessage.Id) + "\"><input type=\"hidden\" name=\"threadid\" value =\"-1\"><input type=\"submit\" value =\"Comment\"></input></form>\n"
+		}
 		if moderator || vMessage.Username == username {
 			htmlDoc += "<form action=\"/delete/\" method=\"delete\"><input type=\"hidden\" name=\"messageid\" value =\"" + fmt.Sprint(vMessage.Id) + "\"><input type=\"submit\" value =\"Remove\"></form>\n"
 		}
-		htmlDoc += "<br>"
+		htmlDoc += "<hr>\n"
+		htmlDoc += "<br>\n"
 	}
+	htmlDoc += "<p>Post a message to this thread:</p>"
+	htmlDoc += "<form action=\"/message/\" method=\"post\"><input type=\"text\" name=\"message\"><input type=\"hidden\" name=\"parentmessage\" value =\"-1\"><input type=\"hidden\" name=\"threadid\" value =\"" + fmt.Sprint(threadId) + "\"><input type=\"submit\" value =\"Post message\"></input></form>\n"
 
-	htmlDoc += "</ul>"
+	htmlDoc += "</ul>\n"
 
 	return htmlDoc
 }
