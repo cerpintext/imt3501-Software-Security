@@ -195,7 +195,20 @@ func MessageHandler(w http.ResponseWriter, r *http.Request) { // Default request
 		fmt.Fprint(w, "Message sent.<br> <a href=\"/\">Back to front page</a>")
 		break
 
-	case "DELEETE":
+	case "DELETE":
+		message, err := util.ValidateMessage(r)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest) // Bad input give errorcode 400 bad request.
+			fmt.Fprint(w, err)
+			return
+		}
+
+		fmt.Print("User input accepted. Deleting message\n")
+		_, err = database.DeleteMessage(message)
+		if err != nil {
+			fmt.Fprint(w, "Message removed, insuffcient rights.<br> <a href=\"/\">Back to front page</a>")
+		}
+		fmt.Fprint(w, "Message sent.<br> <a href=\"/\">Back to front page</a>")
 		break
 
 	default:

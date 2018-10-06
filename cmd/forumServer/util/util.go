@@ -79,6 +79,8 @@ func ValidateMessage(r *http.Request) (database.Message, error) {
 
 	message.Message = r.FormValue("message")
 
+	message.Message = r.FormValue("messageId")
+
 	parent, err := strconv.Atoi(r.FormValue("parentmessage"))
 	if err != nil {
 		fmt.Printf("Validate Message: Failed to parse message.parentmessage, got: %s\n\n\n", r.FormValue("parentmessage"))

@@ -38,7 +38,7 @@ func GenerateTreadList(category string) string {
 		fmt.Printf("ThreadId: %d \tName:%s \n", vThread.Id, vThread.Name)
 
 		htmlDoc += "<li><h3>"
-		htmlDoc += "<input type=\"hidden\" id=\"threadId\" name=\"custId\" value=\""
+		htmlDoc += "<input type=\"hidden\" id=\"threadId\" name=\"threadId\" value=\""
 		htmlDoc += strconv.Itoa(vThread.Id) + "\">\n"
 		htmlDoc += "<div id=\"textbox\">\n<a href=\"/thread/" + fmt.Sprint(vThread.Id) + "\" class=\"alignleft\">" + vThread.Name + "</a>"
 		htmlDoc += "<p align=right><small><small>Username: " + vThread.Username
@@ -63,6 +63,8 @@ func GenerateMessagesList(threadId int, username string, moderator bool) string 
 		fmt.Printf("MessageID: %d \tMessageText:%s \n", vMessage.Id, vMessage.Message) // TODO: Remove bad use of printf.
 
 		htmlDoc += "<b>" + vMessage.Username + "</b>"
+		htmlDoc += "<input type=\"hidden\" id=\"messageId\" name=\"messageId\" value=\""
+		htmlDoc += strconv.Itoa(vMessage.Id) + "\">\n"
 		htmlDoc += "<p>" + vMessage.Message + "</p>"
 
 		if moderator || vMessage.Username == username {

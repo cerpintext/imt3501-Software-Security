@@ -1,4 +1,4 @@
-package database
+package main
 
 import (
 	"database/sql"
@@ -7,7 +7,7 @@ import (
 	"strconv"
 
 	"github.com/go-sql-driver/mysql"
-	"github.com/krisshol/imt3501-Software-Security/cmd/forumServer/config"
+//	"github.com/krisshol/imt3501-Software-Security/cmd/forumServer/config"
 )
 
 var db *sql.DB // global value for keeping database open
@@ -37,17 +37,12 @@ type Message struct {
 	Timestamp     string
 	Username      string
 	ParentMessage int
-	ThreadId      int
+	ThreadId	  int
 }
 
 func OpenDB() {
 	var err error
-	db, err = sql.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:%d)/%s",
-		config.Config.DatabaseUser,
-		config.Config.DatabasePassword,
-		config.Config.DatabaseAddress,
-		config.Config.DatabasePort,
-		config.Config.DatabaseDatabase))
+	db, err = sql.Open("mysql", "forum:KalrabiErNorskMat@tcp(31.45.87.212:63306)/forumdatabase")
 	if err != nil {
 		panic(err.Error()) // TODO: Implement proper handlig
 	}
@@ -94,22 +89,6 @@ func AddThread(c Thread, m Message) {
 //	Only uses fields Username, Email, and passwordHash
 //	How to use
 //	AddUser(User{"userName", "email", "passwordHash" anInt, anInt})
-func AddUser(c User) {
-	stmtIns, err := db.Prepare("INSERT INTO User (`username`, `email`, `passwordHash`) VALUES( ?, ?, ? )") // ? = placeholder
-	if err != nil {
-		panic(err.Error()) // TODO: Implement proper handlig
-	}
-	defer stmtIns.Close() // Close the statement when we leave function() / the program terminates
-	// Insert tuples (username, email, passwordHash, reputation, role)
-	_, err = stmtIns.Exec(c.Username, c.Email, c.PasswordHash)
-	if err != nil {
-		errorHandling(err, "addUser")
-	}
-}
-
-//	Only uses fields Username, Email, and passwordHash
-//	How to use
-//	AddUser(User{"userName", "email", "passwordHash" anInt, anInt})
 //	parentMessage is the message a user is replying to, threadId is the thread they're in
 func AddMessage(c Message) int {
 	stmtIns, err := db.Prepare("INSERT INTO Message (`message`, `username`, `parentmessage`, `threadId`) VALUES( ?, ?, ?, ? )") // ? = placeholder
@@ -146,7 +125,7 @@ func AddMessage(c Message) int {
 func GetUser(username string) (User, error) {
 
 	var user User // QueryRow is using prepared statements. http://go-database-sql.org/retrieving.html
-	err := db.QueryRow("SELECT username, passwordhash, role FROM User WHERE username = ?", username).Scan(&user.Username, &user.PasswordHash, &user.Role)
+	err := db.QueryRow("SELECT username, passwordhash FROM User WHERE username = ?", username).Scan(&user.Username, &user.PasswordHash)
 	if err != nil {
 		return User{}, err
 	}
@@ -155,9 +134,9 @@ func GetUser(username string) (User, error) {
 
 }
 
-//      Only uses fields Id
-//      How to use
-//      GetThread(Thread{threadId, "", ""})
+//	Only uses fields Id
+//	How to use
+//	GetThread(Thread{threadId, "", ""})
 func GetThread(c Thread) []Message {
 	var slice []Message
 	stmtIns, err := db.Prepare("SELECT * FROM Message WHERE threadId = ?") // ? = placeholder
@@ -190,8 +169,8 @@ func GetThread(c Thread) []Message {
 		}
 
 		var cnt int
-		_ = db.QueryRow("SELECT COUNT(*) FROM Message WHERE threadId = ?", c.Id).Scan(&cnt)
-		slice = make([]Message, cnt)
+		_ = db.QueryRow("SELECT COUNT(*) FROM Message").Scan(&cnt)
+		var slice = make([]Message, cnt)
 		var s int = 0
 
 		// Fetch rows
@@ -216,35 +195,31 @@ func GetThread(c Thread) []Message {
 				switch columns[i] {
 				case "id":
 					slice[s].Id, err = strconv.Atoi(value)
-					fmt.Println("Reading value ", slice[s].Id, " from row ", s)
+								fmt.Println("Reading value ", slice[s].Id, " from row ", s)
 					break
 				case "message":
 					slice[s].Message = value
-					//                      fmt.Println("Reading value ", value, " from row ", s)
+					//			fmt.Println("Reading value ", value, " from row ", s)
 					break
 				case "timestamp":
 					slice[s].Timestamp = value
-					//                      fmt.Println("Reading value ", value, " from row ", s)
-					break
-				case "username":
-					slice[s].Username = value
-					//                      fmt.Println("Reading value ", value, " from row ", s)
-					break
-				case "parentmessage":
-					slice[s].ParentMessage, err = strconv.Atoi(value)
-					//                      fmt.Println("Reading value ", value, " from row ", s)
+					//			fmt.Println("Reading value ", value, " from row ", s)
 					break
 				case "threadId":
 					slice[s].ThreadId, err = strconv.Atoi(value)
-					//                      fmt.Println("Reading value ", value, " from row ", s)
+					//			fmt.Println("Reading value ", value, " from row ", s)
+					break
+				case "parentmessage":
+					slice[s].ParentMessage, err = strconv.Atoi(value)
+					//			fmt.Println("Reading value ", value, " from row ", s)
 					break
 
 				}
 			}
 			s++
 		}
+
 	}
-	fmt.Printf("GetThread(): Returning message slice with len: %d\n", +len(slice))
 	return slice
 }
 
@@ -442,30 +417,21 @@ func DeleteThread(c Thread) {
 //	Only uses field Username
 //	How to use
 //	DeleteMessage(Message{anInt, "", "", "", anInt})
-func DeleteMessage(c Message) error {
-	var user User
-	user, err := GetUser(c.Username)
-	if err == nil {
-		if user.Role >= 1 {
-			stmtIns, err := db.Prepare("DELETE FROM Message WHERE id = ?") // ? = placeholder
-			if err != nil {
-				panic(err.Error()) // TODO: Implement proper handlig
-			}
-			defer stmtIns.Close() // Close the statement when we leave function() / the program terminates
-			// Insert tuples (username, email, passwordHash, reputation, role)
-			Result, err := stmtIns.Exec(c.Id)
-			if err != nil {
-				errorHandling(err, "delMessage")
-			}
-			rows, err := Result.RowsAffected()
-			if rows == 0 {
-				fmt.Println("Hmm, something strange happend; \n\tMessage not found -> message not deleted")
-			}
-		}
-	} else {
-		return err
+func DeleteMessage(c Message) {
+	stmtIns, err := db.Prepare("DELETE FROM Message WHERE id = ?") // ? = placeholder
+	if err != nil {
+		panic(err.Error()) // TODO: Implement proper handlig
 	}
-	return err
+	defer stmtIns.Close() // Close the statement when we leave function() / the program terminates
+	// Insert tuples (username, email, passwordHash, reputation, role)
+	Result, err := stmtIns.Exec(c.Id)
+	if err != nil {
+		errorHandling(err, "delMessage")
+	}
+	rows, err := Result.RowsAffected()
+	if rows == 0 {
+		fmt.Println("Hmm, something strange happend; \n\tMessage not found -> message not deleted")
+	}
 }
 
 /*************** Help functions ***************/
@@ -491,4 +457,19 @@ func errorHandling(err error, function string) {
 		//log.Println(string(runes[135:143])) // Causes out of bounds exceptions if error not long enough. Careful.
 		panic(err.Error())
 	}
+}
+
+
+func main() {
+	OpenDB()
+	fmt.Println("Testing database.go")
+	//AddThread(Thread{1, "Thread Test 1", "salty"}, Message{1, "the message to be posted", "", "salty", 1, -1})
+	fmt.Println("Tread added")
+	//	AddMessage(Message{1, "1 so happy", "", "salty", 13, -1})
+	//	AddMessage(Message{1, "2 responding to 1", "", "botolf", 13, 1})
+	//	AddMessage(Message{1, "3 responding to none", "", "trollolo", 13, -1})
+		AddMessage(Message{1, "125 responding to 122", "", "eliot", 60, 122})
+	//	AddMessage(Message{1, "5 responding to 4", "", "salty", 13, 4})
+	//	GetThread(Thread{60, "", ""})
+	//	ShowThreads()
 }
