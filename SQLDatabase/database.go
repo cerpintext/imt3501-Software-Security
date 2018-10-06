@@ -123,10 +123,11 @@ func AddMessage(c Message) int {
 	var res sql.Result
 	if c.ParentMessage == -1 { // No parent. ints can't be nil in golang.
 
-		res, err = stmtIns.Exec(c.Message, c.Username, c.ThreadId, nil)
+		res, err = stmtIns.Exec(c.Message, c.Username, nil, c.ThreadId)
+	} else if c.ThreadId == -1 {
+		res, err = stmtIns.Exec(c.Message, c.Username, c.ParentMessage, nil)
 	} else {
 
-		res, err = stmtIns.Exec(c.Message, c.Username, c.ThreadId, c.ParentMessage)
 	}
 
 	if err != nil {
@@ -446,7 +447,7 @@ func DeleteMessage(c Message) error {
 	var user User
 	user, err := GetUser(c.Username)
 	if err == nil {
-		if user.Role >= 1 {
+		if user.Role >= 1 || user.Username == c.Username {
 			stmtIns, err := db.Prepare("DELETE FROM Message WHERE id = ?") // ? = placeholder
 			if err != nil {
 				panic(err.Error()) // TODO: Implement proper handlig
@@ -476,15 +477,15 @@ func errorHandling(err error, function string) {
 	if mysqlErr.Number == 1062 && function == "addUser" { // Duplicate username
 		log.Println("Username already exists")
 	} else if mysqlErr.Number == 1062 && function == "addThread" { // Duplicate thread
-		log.Println("Something strange happend a thread with this ID already exists")
+		log.Println("A thread with this ID already exists")
 	} else if mysqlErr.Number == 1062 && function == "addMessage" { // Duplicate message
-		log.Println("Something strange happend a message with this ID already exists")
+		log.Println("A message with this ID already exists")
 	} else if mysqlErr.Number == 1452 && function == "addMessage" && string(runes[135:143]) == "username" { // Non existent user
-		log.Println("Hmm, that's not supposed to happen. User not found when posting message")
+		log.Println("User not found when posting message")
 	} else if mysqlErr.Number == 1452 && function == "addMessage" && string(runes[135:148]) == "parentmessage" { // Non existent parent message
-		log.Println("Hmm, that's not supposed to happen. Parent message message not found") // output might need to be changed
+		log.Println("Parent message message not found") // output might need to be changed
 	} else if mysqlErr.Number == 1452 && function == "addThread" && string(runes[133:141]) == "username" { // Non existent parent message
-		log.Println("Hmm, that's not supposed to happen. Username does not exist when posting a new thread") // output might need to be changed
+		log.Println("Username does not exist when posting a new thread") // output might need to be changed
 	} else if mysqlErr.Number == 1054 { // Non existent parent message
 		log.Println(mysqlErr.Message) // output might need to be changed
 	} else { // Unkown error

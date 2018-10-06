@@ -11,7 +11,6 @@ func GenerateCategoryList() string {
 	var htmlDoc string
 	htmlDoc += "<ul>"
 
-	database.OpenDB()
 	viewCategories := database.ShowCategories()
 
 	for _, vCategory := range viewCategories {
@@ -29,7 +28,8 @@ func GenerateTreadList(category string) string {
 
 	var htmlDoc string
 
-	database.OpenDB()
+	htmlDoc += "<form action=\"/thread/\" method=\"post\">Thread Name <input type=\"text\" name=\"threadname\"> Thread Description <input type=\"text\" name=\"message\"><input type=\"hidden\" name=\"parentmessage\" value =\"-1\"><input type=\"hidden\" name=\"threadid\" value =\"-1\"><input type=\"hidden\" name=\"categoryname\" value =\"" + category + "\"><input type=\"submit\" value =\"Create thread\"></input></form>\n"
+
 	viewThreads := database.ShowThreads(category)
 	htmlDoc += "<ul>"
 	fmt.Println("Displaying all threads in category: " + category)
@@ -52,9 +52,7 @@ func GenerateTreadList(category string) string {
 func GenerateMessagesList(threadId int, username string, moderator bool) string {
 	var htmlDoc string
 
-	database.OpenDB()
-	viewMessages := database.GetThread(database.Thread{60, "", ""})
-	// viewMessages := database.ShowMessages(threadId)
+	viewMessages := database.GetThread(database.Thread{threadId, "", ""})
 
 	htmlDoc += "<ul>"
 	fmt.Printf("GenerateMessagesList(): Messeage count in thread(%d): %d\n", threadId, len(viewMessages))
@@ -63,12 +61,21 @@ func GenerateMessagesList(threadId int, username string, moderator bool) string 
 		fmt.Printf("MessageID: %d \tMessageText:%s \n", vMessage.Id, vMessage.Message) // TODO: Remove bad use of printf.
 
 		htmlDoc += "<b>" + vMessage.Username + "</b>"
-		htmlDoc += "<input type=\"hidden\" id=\"messageId\" name=\"messageId\" value=\""
-		htmlDoc += strconv.Itoa(vMessage.Id) + "\">\n"
 		htmlDoc += "<p>" + vMessage.Message + "</p>"
 
+		viewComments := database.GetReplies(vMessage.Id)
+		for _, vComment := range viewComments {
+			htmlDoc += "<hr>\n"
+
+			htmlDoc += "<b style=\"margin-left:" + fmt.Sprint(config.COMMENT_INTENT) + "px\">" + vComment.Username + "</b>\n"
+			htmlDoc += "<p style=\"margin-left:" + fmt.Sprint(config.COMMENT_INTENT) + "px\">" + vComment.Message + "</p>\n"
+			if moderator || vMessage.Username == username {
+				htmlDoc += "<form style=\"margin-left:" + fmt.Sprint(config.COMMENT_INTENT) + "px\" action=\"/delete/\" method=\"delete\"><input type=\"hidden\" name=\"messageid\" value =\"" + fmt.Sprint(vComment.Id) + "\"><input type=\"submit\" value =\"Remove\"></form>\n"
+			}
+		}
+
 		if moderator || vMessage.Username == username {
-			htmlDoc += "<form action=\"/message/\" method=\"delete\"><input type=\"submit\" value =\"Remove\"></form>"
+			htmlDoc += "<form action=\"/delete/\" method=\"delete\"><input type=\"hidden\" name=\"messageid\" value =\"" + fmt.Sprint(vMessage.Id) + "\"><input type=\"submit\" value =\"Remove\"></form>\n"
 		}
 		htmlDoc += "<br>"
 	}

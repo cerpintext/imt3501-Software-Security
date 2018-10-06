@@ -130,7 +130,6 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) { // Default request h
 
 		}
 
-		database.OpenDB()
 		user, err := database.GetUser(username)
 
 		if err != nil { // Check if user in db.
@@ -175,11 +174,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) { // Default request h
 func MessageHandler(w http.ResponseWriter, r *http.Request) { // Default request handler handles domain/ requests.
 
 	w.Header().Set("Content-Type", "text/html") // The response will be an html document.
-	fmt.Print("Received a request to PostMessageHandler\n")
-
-	if r.Method != "POST" {
-
-	}
+	fmt.Print("Received a request to MessageHandler\n")
 
 	switch r.Method {
 	case "POST":
@@ -195,26 +190,34 @@ func MessageHandler(w http.ResponseWriter, r *http.Request) { // Default request
 		fmt.Fprint(w, "Message sent.<br> <a href=\"/\">Back to front page</a>")
 		break
 
-	case "DELETE":
-		message, err := util.ValidateMessage(r)
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest) // Bad input give errorcode 400 bad request.
-			fmt.Fprint(w, err)
-			return
-		}
-
-		fmt.Print("User input accepted. Deleting message\n")
-		_, err = database.DeleteMessage(message)
-		if err != nil {
-			fmt.Fprint(w, "Message removed, insuffcient rights.<br> <a href=\"/\">Back to front page</a>")
-		}
-		fmt.Fprint(w, "Message sent.<br> <a href=\"/\">Back to front page</a>")
-		break
-
 	default:
 		w.WriteHeader(http.StatusBadRequest) // Bad input give errorcode 400 bad request.
 		return
 	}
+}
+
+func DeleteMessageHandler(w http.ResponseWriter, r *http.Request) { // Default request handler handles domain/ requests.
+
+	w.Header().Set("Content-Type", "text/html") // The response will be an html document.
+	fmt.Print("Received a request to DeleteMessageHandler\n")
+
+	fmt.Print("Method is " + r.Method)
+
+	fmt.Println("Deleting message ")
+	message, err := util.ValidateMessage(r)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest) // Bad input give errorcode 400 bad request.
+		fmt.Fprint(w, err)
+		return
+	}
+
+	fmt.Print("User input accepted. Deleting message\n")
+	err = database.DeleteMessage(message)
+	if err != nil {
+		fmt.Fprint(w, "Message not removed, insuffcient rights.<br> <a href=\"/\">Back to front page</a>")
+	}
+	fmt.Fprint(w, "Message deleted.<br> <a href=\"/\">Back to front page</a>")
+
 }
 
 // MessageHandler returns html page if GET, logs in user if POST.
@@ -241,7 +244,6 @@ func ThreadHandler(w http.ResponseWriter, r *http.Request) { // Default request 
 			cookieUsername, _ := r.Cookie("username")
 			username = cookieUsername.Value
 
-			database.OpenDB()
 			user, _ := database.GetUser(username)
 			if user.Role > 0 {
 				moderator = true // TODO: Not working as it should yet work in progess #23.
