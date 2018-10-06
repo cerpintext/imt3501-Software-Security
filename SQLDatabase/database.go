@@ -153,7 +153,7 @@ func AddMessage(c Message) int {
 func GetUser(username string) (User, error) {
 
 	var user User // QueryRow is using prepared statements. http://go-database-sql.org/retrieving.html
-	err := db.QueryRow("SELECT username, passwordhas, role, salt FROM User WHERE username = ?", username).Scan(&user.Username, &user.PasswordHash, &user.Role, &user.Salt)
+	err := db.QueryRow("SELECT username, passwordHash, role, salt FROM User WHERE username = ?", username).Scan(&user.Username, &user.PasswordHash, &user.Role, &user.Salt)
 	if err != nil {
 		return User{}, err
 	}
