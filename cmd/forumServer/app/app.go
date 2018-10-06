@@ -13,6 +13,7 @@ import (
 	"github.com/krisshol/imt3501-Software-Security/cmd/forumServer/config"
 	"github.com/krisshol/imt3501-Software-Security/cmd/forumServer/htmlGeneration"
 	"github.com/krisshol/imt3501-Software-Security/cmd/forumServer/util"
+	"github.com/krisshol/imt3501-Software-Security/cmd/forumServer/crypt"
 )
 
 // DefaultHandler returns index.html.
@@ -130,8 +131,11 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) { // Default request h
 
 		}
 
-		user, err := database.GetUser(username)
-
+		user, err := database.GetUser(username)																			//	retrives username, passwordHash, salt and role
+		hashedPassword, salt := crypt.Hash(crypt.HashStruct{password, user.Salt})		//	hashes recived password and passes salt retrived from database
+		if salt != user.Salt {																											//	checks that retrived salt and salt used are the same
+			fmt.Println("wow, wow, wow, something wrong happend, salt did not match, should never happen")
+		}
 		if err != nil { // Check if user in db.
 			w.WriteHeader(http.StatusBadRequest) // Bad input give errorcode 400 bad request.
 			fmt.Fprint(w, util.FetchHTML("login.html"))
@@ -139,7 +143,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) { // Default request h
 			fmt.Printf("User: %s doesn't exist. Aboring login.\n\n", username)
 			return
 		}
-		if user.PasswordHash != password { // Check if password matches.
+		if user.PasswordHash != hashedPassword { // Check if password matches.		
 			w.WriteHeader(http.StatusBadRequest) // Bad input give errorcode 400 bad request.
 			fmt.Fprint(w, util.FetchHTML("login.html"))
 			fmt.Fprint(w, "Sorry, some of that was wrong.")

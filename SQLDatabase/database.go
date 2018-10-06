@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-sql-driver/mysql"
 	"github.com/krisshol/imt3501-Software-Security/cmd/forumServer/config"
+	"github.com/krisshol/imt3501-Software-Security/cmd/forumServer/crypt"
 )
 
 var db *sql.DB // global value for keeping database open
@@ -29,6 +30,7 @@ type User struct {
 	PasswordHash string
 	Reputation   int
 	Role         int
+	Salt				 string
 }
 
 type Message struct {
@@ -94,15 +96,16 @@ func AddThread(c Thread, m Message, g Category) {
 
 //	Only uses fields Username, Email, and passwordHash
 //	How to use
-//	AddUser(User{"userName", "email", "passwordHash" anInt, anInt})
+//	AddUser(User{"userName", "email", "passwordHash", anInt, anInt, ""})
 func AddUser(c User) {
-	stmtIns, err := db.Prepare("INSERT INTO User (`username`, `email`, `passwordHash`) VALUES( ?, ?, ? )") // ? = placeholder
+	hash, salt := crypt.Hash(crypt.HashStruct{c.PasswordHash, c.Salt})
+	stmtIns, err := db.Prepare("INSERT INTO User (`username`, `email`,`passwordHash`, `salt`) VALUES( ?, ?, ?, ? )") // ? = placeholder
 	if err != nil {
 		panic(err.Error()) // TODO: Implement proper handlig
 	}
 	defer stmtIns.Close() // Close the statement when we leave function() / the program terminates
 	// Insert tuples (username, email, passwordHash, reputation, role)
-	_, err = stmtIns.Exec(c.Username, c.Email, c.PasswordHash)
+	_, err = stmtIns.Exec(c.Username, c.Email, hash, salt)
 	if err != nil {
 		errorHandling(err, "addUser")
 	}
@@ -150,7 +153,7 @@ func AddMessage(c Message) int {
 func GetUser(username string) (User, error) {
 
 	var user User // QueryRow is using prepared statements. http://go-database-sql.org/retrieving.html
-	err := db.QueryRow("SELECT username, passwordhash, role FROM User WHERE username = ?", username).Scan(&user.Username, &user.PasswordHash, &user.Role)
+	err := db.QueryRow("SELECT username, passwordhas, role, salt FROM User WHERE username = ?", username).Scan(&user.Username, &user.PasswordHash, &user.Role, &user.Salt)
 	if err != nil {
 		return User{}, err
 	}
