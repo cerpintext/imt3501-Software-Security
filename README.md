@@ -19,7 +19,7 @@ There is a string focus on security in the application.
 ### Golang Server
 
 ### HTML Websites
-In the html documents we use basic html with form action that contacts go handlers from main. We also have a htmlGeneration program that generates threads, categories and Messages from the database. 
+In the html documents we use basic html with form action that contacts go handlers from main. We also have a htmlGeneration program that generates threads, categories and messages from the database. 
 ### Database Handler
 
 ### MYSQL Database
