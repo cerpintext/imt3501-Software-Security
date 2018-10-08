@@ -41,6 +41,7 @@ There is a string focus on security in the application.
     cd imt3501-Software-Security/bin
     go get github.com/tkanos/gonfig
     go get github.com/go-sql-driver/mysql
+    go get github.com/nu7hatch/gouuid
     go get -u golang.org/x/crypto/scrypt
     go build ../cmd/forumServer
     cp ../docs/envExample .env
