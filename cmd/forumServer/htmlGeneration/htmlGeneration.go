@@ -12,7 +12,6 @@ func GenerateCategoryList() string {
 	var htmlDoc string
 	htmlDoc += "<ul>"
 
-	database.OpenDB()
 	viewCategories := database.ShowCategories()
 
 	for _, vCategory := range viewCategories {
@@ -32,7 +31,6 @@ func GenerateTreadList(category string) string {
 
 	htmlDoc += "<form action=\"/thread/\" method=\"post\">Thread Name <input type=\"text\" name=\"threadname\"> Thread Description <input type=\"text\" name=\"message\"><input type=\"hidden\" name=\"parentmessage\" value =\"-1\"><input type=\"hidden\" name=\"threadid\" value =\"-1\"><input type=\"hidden\" name=\"categoryname\" value =\"" + category + "\"><input type=\"submit\" value =\"Create thread\"></input></form>\n"
 
-	database.OpenDB()
 	viewThreads := database.ShowThreads(category)
 	htmlDoc += "<ul>"
 	fmt.Println("Displaying all threads in category: " + category)
@@ -41,7 +39,7 @@ func GenerateTreadList(category string) string {
 		fmt.Printf("ThreadId: %d \tName:%s \n", vThread.Id, vThread.Name)
 
 		htmlDoc += "<li><h3>"
-		htmlDoc += "<input type=\"hidden\" id=\"threadId\" name=\"custId\" value=\""
+		htmlDoc += "<input type=\"hidden\" id=\"threadId\" name=\"threadId\" value=\""
 		htmlDoc += strconv.Itoa(vThread.Id) + "\">\n"
 		htmlDoc += "<div id=\"textbox\">\n<a href=\"/thread/" + fmt.Sprint(vThread.Id) + "\" class=\"alignleft\">" + vThread.Name + "</a>"
 		htmlDoc += "<p align=right><small><small>Username: " + vThread.Username
@@ -55,7 +53,6 @@ func GenerateTreadList(category string) string {
 func GenerateMessagesList(threadId int, username string, moderator bool) string {
 	var htmlDoc string
 
-	database.OpenDB()
 	viewMessages := database.GetThread(database.Thread{threadId, "", ""})
 
 	htmlDoc += "<ul>\n"
@@ -74,7 +71,7 @@ func GenerateMessagesList(threadId int, username string, moderator bool) string 
 			htmlDoc += "<b style=\"margin-left:" + fmt.Sprint(config.COMMENT_INTENT) + "px\">" + vComment.Username + "</b>\n"
 			htmlDoc += "<p style=\"margin-left:" + fmt.Sprint(config.COMMENT_INTENT) + "px\">" + vComment.Message + "</p>\n"
 			if moderator || vMessage.Username == username {
-				htmlDoc += "<form style=\"margin-left:" + fmt.Sprint(config.COMMENT_INTENT) + "px\" action=\"/message/\" method=\"delete\"><input type=\"hidden\" name=\"messageid\" value =\"" + fmt.Sprint(vComment.Id) + "\"><input type=\"submit\" value =\"Remove\"></form>\n"
+				htmlDoc += "<form style=\"margin-left:" + fmt.Sprint(config.COMMENT_INTENT) + "px\" action=\"/delete/\" method=\"delete\"><input type=\"hidden\" name=\"messageid\" value =\"" + fmt.Sprint(vComment.Id) + "\"><input type=\"submit\" value =\"Remove\"></form>\n"
 			}
 		}
 
@@ -82,7 +79,7 @@ func GenerateMessagesList(threadId int, username string, moderator bool) string 
 			htmlDoc += "<form action=\"/message/\" method=\"post\"><input type=\"text\" name=\"message\"><input type=\"hidden\" name=\"parentmessage\" value =\"" + fmt.Sprint(vMessage.Id) + "\"><input type=\"hidden\" name=\"threadid\" value =\"-1\"><input type=\"submit\" value =\"Comment\"></input></form>\n"
 		}
 		if moderator || vMessage.Username == username {
-			htmlDoc += "<form action=\"/message/\" method=\"delete\"><input type=\"hidden\" name=\"messageid\" value =\"" + fmt.Sprint(vMessage.Id) + "\"><input type=\"submit\" value =\"Remove\"></form>\n"
+			htmlDoc += "<form action=\"/delete/\" method=\"delete\"><input type=\"hidden\" name=\"messageid\" value =\"" + fmt.Sprint(vMessage.Id) + "\"><input type=\"submit\" value =\"Remove\"></form>\n"
 		}
 		htmlDoc += "<hr>\n"
 		htmlDoc += "<br>\n"

@@ -7,9 +7,10 @@ CREATE TABLE IF NOT EXISTS `Category` (
 CREATE TABLE IF NOT EXISTS `User` (
     `username`      VARCHAR (32)    NOT NULL,
     `email`         VARCHAR (120)   NOT NULL,
-    `passwordhash`  VARCHAR (40)    NOT NULL,
+    `passwordhash`  BINARY (64)     NOT NULL,
     `reputation`    INT             DEFAULT '0',
     `role`          INT UNSIGNED    DEFAULT '0',
+    `salt`          BINARY (32)     NOT NULL,
     PRIMARY KEY (username)
 );
 
@@ -34,7 +35,7 @@ CREATE TABLE IF NOT EXISTS `Message` (
     `message`       TEXT            NOT NULL,
     `timestamp`     TIMESTAMP       NOT NULL,
     `username`      VARCHAR (120)   NOT NULL,
-    `threadId`      INT UNSIGNED   NOT NULL,
+    `threadId`      INT UNSIGNED    NOT NULL,
     `parentmessage` INT UNSIGNED,
     PRIMARY KEY (id),
     FOREIGN KEY (username) REFERENCES User(username)

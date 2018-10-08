@@ -3,7 +3,7 @@
 ## Members
 | Name             | Studentno |
 | ---------------- | --------- |
-| Jone Skaara      | 473181    | 
+| Jone Skaara      | 473181    |
 | Kristian S. Holm | 473114    |
 | Olav H. Hoggen   | 473138    |
 | Martin Kvalvåg   | 473144    |
@@ -11,15 +11,15 @@
 
 ## Description
 This is the assignment in IMT3501 Software Security at NTNU in Gjøvik Norway. The task is to create a web forum with a concept of users, threads, categories, messages, and message replies.
-Users can sign up then login and keep the session for their time browsing the forum, post messages and have other users up- and downvote your messages earning you reputation points. 
+Users can sign up then login and keep the session for their time browsing the forum, post messages and have other users up- and downvote your messages earning you reputation points.
 There is a string focus on security in the application.
 
-## Components 
+## Components
 
 ### Golang Server
 
 ### HTML Websites
-
+In the html documents we use basic html with form action that contacts go handlers from main. We also have a htmlGeneration program that generates threads, categories and messages from the database. 
 ### Database Handler
 
 ### MYSQL Database
@@ -41,6 +41,8 @@ There is a string focus on security in the application.
     cd imt3501-Software-Security/bin
     go get github.com/tkanos/gonfig
     go get github.com/go-sql-driver/mysql
+    go get github.com/nu7hatch/gouuid
+    go get -u golang.org/x/crypto/scrypt
     go build ../cmd/forumServer
     cp ../docs/envExample .env
     # Fill inn missing fields in .env file. Like PORT and IP.
@@ -55,6 +57,6 @@ local db:
 ```
     #basic setup first eg. add root user.
     mysql -u root -p
-    create database forum	
-    mysql -u root -p forum < create-db.sql 
+    create database forum
+    mysql -u root -p forum < create-db.sql
 ```
